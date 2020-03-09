@@ -16,7 +16,7 @@ max_prec:=function(Q,p,N,g,W0,Winf,e0,einf);
 end function;
 
 
-frobmatrix:=function(Q,p,N,Nmax,g,r,W0,Winf,G0,Ginf,frobmatb0r,red_list_fin,red_list_inf,basis,integrals,quo_map,verbose);
+frobmatrix:=function(Q,p,n,m,N,Nmax,g,r,W0,Winf,G0,Ginf,frobmatb0r,red_list_fin,red_list_inf,basis,integrals,quo_map,verbose,Kx);
 
   // Compute the matrix of F_p on H^1(X) mod p^N with respect to 'basis'.
 
@@ -27,10 +27,10 @@ frobmatrix:=function(Q,p,N,Nmax,g,r,W0,Winf,G0,Ginf,frobmatb0r,red_list_fin,red_
 
   for i:=1 to #basis do
 
-    dif:=frobenius(basis[i],Q,p,Nmax,r,frobmatb0r);
-    dif:=convert_to_Qxzzinvd(dif,Q);
+    dif:=frobenius(basis[i],Q,p,n,m,Nmax,r,frobmatb0r);
+    dif:=convert_to_Kxzzinvdconvert_to_Kxzzinvd(dif,Q,Kx);
 
-    coefs,f0,finf,fend:=reduce_with_fs(dif,Q,p,N,Nmax,r,W0,Winf,G0,Ginf,red_list_fin,red_list_inf,basis,integrals,quo_map);
+    coefs,f0,finf,fend:=reduce_with_fs(dif,Q,p,N,Nmax,r,W0,Winf,G0,Ginf,red_list_fin,red_list_inf,basis,integrals,quo_map,Kx);
 
     for j:=1 to #basis do
       F[i,j]:=coefs[j];
@@ -51,11 +51,13 @@ frobmatrix:=function(Q,p,N,Nmax,g,r,W0,Winf,G0,Ginf,frobmatb0r,red_list_fin,red_
 end function;
 
 
-coleman_data:=function(Q,p,N:useU:=false,basis0:=[],basis1:=[],basis2:=[],verbose:=false,W0:=0,Winf:=0)
+coleman_data:=function(Q,p,m,N:useU:=false,basis0:=[],basis1:=[],basis2:=[],verbose:=false,W0:=0,Winf:=0)
 
   // Takes a polynomial Q in two variables x,y over the rationals which is monic in y.
   // Returns the Coleman data of (the projective nonsingular model of) the curve defined
   // by Q at p to p-adic precision N.
+  
+  exactcoho:=false;
 
   if not IsPrime(p) then
     error "p is not prime";
@@ -64,6 +66,19 @@ coleman_data:=function(Q,p,N:useU:=false,basis0:=[],basis1:=[],basis2:=[],verbos
   if not IsIrreducible(Q) then
     error "Curve is not irreducible";
   end if;
+  
+  //Kxy:=Parent(Q);
+ // Kx:=Parent(Coefficients(Q)[1]);
+ // K:=BaseRing(Kx);
+ // OK:=RingOfIntegers(K);
+ // n:=InertiaDegree(ideal<OK|p>);
+  //m:=DefiningPolynomial(FiniteField(q));
+  
+  K:=NumberField(m);
+  Kx:=PolynomialRing(K);
+  Kxy:=PolynomialRing(Kx);
+  Kxyz:=LaurentSeriesRing(Kxy);
+  n:=Degree(m);
 
   ResetMaximumMemoryUsage();
   t0:=Cputime();
@@ -73,30 +88,33 @@ coleman_data:=function(Q,p,N:useU:=false,basis0:=[],basis1:=[],basis2:=[],verbos
   end if;
 
   d:=Degree(Q);
-  g:=genus(Q,p);
-  r,Delta,s:=auxpolys(Q);
+  g:=genus(Q,p,n,m);
+  
+  r,Delta,s:=auxpolys(Q,p,n,K);
 
   if W0 eq 0 then
-    W0:=mat_W0(Q);
+    W0:=mat_W0(Q,Kxy);
   end if;
   if Winf eq 0 then
-    Winf:=mat_Winf(Q);
+    Winf:=mat_Winf(Q,Kxy);
   end if;
   W0inv:=W0^(-1); 
   W:=Winf*W0inv;
   Winfinv:=Winf^(-1);
 
-  if (FiniteField(p)!LeadingCoefficient(Delta) eq 0) or (Degree(r) lt 1) or (not smooth(r,p)) or (not (is_integral(W0,p) and is_integral(W0inv,p) and is_integral(Winf,p) and is_integral(Winfinv,p))) then
+  if (FiniteField(p)!LeadingCoefficient(Delta) eq 0) or (Degree(r) lt 1) or (not smooth(r,p,n,m)) or (not (is_integral(W0,p,n) and is_integral(W0inv,p,n) and is_integral(Winf,p,n) and is_integral(Winfinv,p,n))) then
     error "bad prime";
   end if;
 
-  G:=con_mat(Q,Delta,s);
+  G:=con_mat(Q,Delta,s,K);
   G0:=W0*Evaluate(G,Parent(W0[1,1]).1)*W0^(-1)+ddx_mat(W0)*W0^(-1);
   Ginf:=Winf*Evaluate(G,Parent(Winf[1,1]).1)*Winf^(-1)+ddx_mat(Winf)*Winf^(-1);
 
-  Jinf,Tinf,Tinfinv:=jordan_inf(Ginf);
-  J0,T0,T0inv:=jordan_0(r,G0);
-  e0,einf:=ram(J0,Jinf);
+  e0,e0list,resG0list := fin_ram_ind(r,G0,Kx);
+  einf,einflist,resGinf := inf_ram_ind(Ginf,Kx);
+  Jinf,Tinf,Tinfinv:=jordan_inf(p,n,m,einflist,resGinf);
+  J0,T0,T0inv:=jordan_0(p,n,m,r,,e0list,resG0list,Kx);
+  //e0,einf:=ram(J0,Jinf);
  
   delta:=Floor(log(p,-(ord_0_mat(W)+1)*einf))+Floor(log(p,(Floor((2*g-2)/d)+1)*einf));
 
@@ -112,7 +130,7 @@ coleman_data:=function(Q,p,N:useU:=false,basis0:=[],basis1:=[],basis2:=[],verbos
     print "Computing basis H^1(X):"; 
   end if;
 
-  basis,integrals,quo_map:=basis_coho(Q,p,r,W0,Winf,G0,Ginf,J0,Jinf,T0inv,Tinfinv,useU,basis0,basis1,basis2);
+  basis,integrals,quo_map:=basis_coho(Q,p,r,W0,Winf,G0,Ginf,J0,Jinf,T0inv,Tinfinv,useU,basis0,basis1,basis2,K,Kx,Kxy);
 
   if verbose then 
     print "Time (s) :    ", Cputime(t);
@@ -128,7 +146,7 @@ coleman_data:=function(Q,p,N:useU:=false,basis0:=[],basis1:=[],basis2:=[],verbos
 
   Nmax:=max_prec(Q,p,N,g,W0,Winf,e0,einf);
 
-  frobmatb0r:=froblift(Q,p,Nmax-1,r,Delta,s,W0);
+  frobmatb0r:=froblift(Q,p,n,m,Nmax-1,r,Delta,s,W0);
 
   if verbose then 
     print "Time (s) :    ", Cputime(t);
@@ -139,7 +157,7 @@ coleman_data:=function(Q,p,N:useU:=false,basis0:=[],basis1:=[],basis2:=[],verbos
     print "Computing reduction matrices:";
   end if;
 
-  red_list_fin,red_list_inf:=red_lists(Q,p,Nmax,r,W0,Winf,G0,Ginf,e0,einf,J0,Jinf,T0,Tinf,T0inv,Tinfinv);
+  red_list_fin,red_list_inf:=red_lists(Q,p,n,m,Nmax,r,W0,Winf,G0,Ginf,e0,einf,J0,Jinf,T0,Tinf,T0inv,Tinfinv,Kx);
 
   if verbose then
     print "Time (s) :    ", Cputime(t);
@@ -153,7 +171,7 @@ coleman_data:=function(Q,p,N:useU:=false,basis0:=[],basis1:=[],basis2:=[],verbos
     print "Computing Frobenius matrix:";
   end if;
 
-  F,f0list,finflist,fendlist:=frobmatrix(Q,p,N,Nmax,g,r,W0,Winf,G0,Ginf,frobmatb0r,red_list_fin,red_list_inf,basis,integrals,quo_map,verbose);
+  F,f0list,finflist,fendlist:=frobmatrix(Q,p,n,m,N,Nmax,g,r,W0,Winf,G0,Ginf,frobmatb0r,red_list_fin,red_list_inf,basis,integrals,quo_map,verbose,Kx);
 
   if verbose then
     print "";

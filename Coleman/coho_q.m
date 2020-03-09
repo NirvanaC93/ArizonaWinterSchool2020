@@ -615,7 +615,7 @@ inf_ram_ind:=function(Ginf,Kx)
 end function;
 
 
-jordan_0:=function(p,n,m,N,r,e0list,resG0list,Kx,exactcoho)
+jordan_0:=function(p,n,m,r,e0list,resG0list,Kx)
 
   // Precompute diagonalisations of finite residue matrices
 
@@ -630,27 +630,27 @@ jordan_0:=function(p,n,m,N,r,e0list,resG0list,Kx,exactcoho)
   for i:=1 to #fac do
     Ki:=Parent(resG0list[i][1,1]); // what if resG0list[i] is defined over K....
     J0i:=ZeroMatrix(Ki,d,d); 
-    if exactcoho then
+    //if exactcoho then
       b:=Basis(Kernel(resG0list[i]));
-    else
-      if Degree(fac[i][1]) eq 1 then
-        b:=basis_kernel_mod_pN(resG0list[i],p,n,m,3*N);
-      else
-        b:=basis_kernel_mod_pN_Ki(resG0list[i],p,n,m,3*N); 
-      end if;
-    end if;
+    //else
+     // if Degree(fac[i][1]) eq 1 then
+     //   b:=basis_kernel_mod_pN(resG0list[i],p,n,m,3*N);
+     // else
+     //   b:=basis_kernel_mod_pN_Ki(resG0list[i],p,n,m,3*N); 
+     // end if;
+    //end if;
     cnt:=#b+1;
     for j:=1 to #e0list[i] do 
       for k:=1 to (e0list[i][j]-1) do
-        if exactcoho then
+      //  if exactcoho then
           b1:=Basis(Kernel(resG0list[i]-k/e0list[i][j]*IdentityMatrix(Ki,d)));  
-        else
-          if Degree(fac[i][1]) eq 1 then
-            b1:=basis_kernel_mod_pN(resG0list[i]-k/e0list[i][j]*IdentityMatrix(Ki,d),p,n,m,3*N);
-          else
-            b1:=basis_kernel_mod_pN_Ki(resG0list[i]-k/e0list[i][j]*IdentityMatrix(Ki,d),p,n,m,3*N);
-          end if;
-        end if;
+      //  else
+       //   if Degree(fac[i][1]) eq 1 then
+       //     b1:=basis_kernel_mod_pN(resG0list[i]-k/e0list[i][j]*IdentityMatrix(Ki,d),p,n,m,3*N);
+       //   else
+       //     b1:=basis_kernel_mod_pN_Ki(resG0list[i]-k/e0list[i][j]*IdentityMatrix(Ki,d),p,n,m,3*N);
+       //   end if;
+       // end if;
         for l:=1 to #b1 do
           J0i[cnt,cnt]:=k/e0list[i][j];
           cnt:=cnt+1;
@@ -660,22 +660,22 @@ jordan_0:=function(p,n,m,N,r,e0list,resG0list,Kx,exactcoho)
     end for;
     Append(~J0,J0i);
     Append(~T0,Matrix(b));
-    if exactcoho then
+    //if exactcoho then
       Append(~T0inv,T0[i]^(-1));
-    else 
-      if Degree(fac[i][1]) eq 1 then
-        Append(~T0inv,invert_matrix_mod_pN(T0[i],p,n,m,3*N));
-      else
-        Append(~T0inv,invert_matrix_mod_pN_Ki(T0[i],p,n,m,3*N));
-      end if;
-    end if;
+   // else 
+   //   if Degree(fac[i][1]) eq 1 then
+   //     Append(~T0inv,invert_matrix_mod_pN(T0[i],p,n,m,3*N));
+    //  else
+    //    Append(~T0inv,invert_matrix_mod_pN_Ki(T0[i],p,n,m,3*N));
+    //  end if;
+    //end if;
   end for;
 
   return J0,T0,T0inv; 
 end function;
 
 
-jordan_inf:=function(p,n,m,N,einflist,resGinf,exactcoho)
+jordan_inf:=function(p,n,m,einflist,resGinf)
 
   // Precompute diagonalisation of infinite residue matrix
 
@@ -683,19 +683,19 @@ jordan_inf:=function(p,n,m,N,einflist,resGinf,exactcoho)
   K:=Parent(resGinf[1,1]);
   Jinf:=ZeroMatrix(K,d,d);
  
-  if exactcoho then 
-    b:=Basis(Kernel(resGinf));
-  else
-    b:=basis_kernel_mod_pN(resGinf,p,n,m,3*N); 
-  end if;
+  //if exactcoho then 
+  b:=Basis(Kernel(resGinf));
+  //else
+ //   b:=basis_kernel_mod_pN(resGinf,p,n,m,3*N); 
+ // end if;
   cnt:=#b+1;
   for i:=1 to #einflist do
     for j:=1 to (einflist[i]-1) do
-      if exactcoho then
+      //if exactcoho then
         b1:=Basis(Kernel(resGinf-j/einflist[i]*IdentityMatrix(K,d)));
-      else
-        b1:=basis_kernel_mod_pN(resGinf-j/einflist[i]*IdentityMatrix(K,d),p,n,m,3*N);
-      end if;
+      //else
+      //  b1:=basis_kernel_mod_pN(resGinf-j/einflist[i]*IdentityMatrix(K,d),p,n,m,3*N);
+      //end if;
       for k:=1 to #b1 do
         Jinf[cnt,cnt]:=j/einflist[i];
         cnt:=cnt+1;
@@ -704,11 +704,11 @@ jordan_inf:=function(p,n,m,N,einflist,resGinf,exactcoho)
     end for;
   end for;
   Tinf:=Matrix(b);
-  if exactcoho then
+  //if exactcoho then
     Tinfinv:=Tinf^(-1);
-  else
-    Tinfinv:=invert_matrix_mod_pN(Tinf,p,n,m,3*N);
-  end if;
+ // else
+  //  Tinfinv:=invert_matrix_mod_pN(Tinf,p,n,m,3*N);
+  //end if;
   return Jinf,Tinf,Tinfinv; 
 end function;
 
@@ -813,50 +813,90 @@ res_inf:=function(w,QK,rK,W0,Winf,Ginf,Jinf,Tinfinv,Kxy)
   return Vector(res);
 end function;
 
+polys_to_vec:=function(polys,degx,K);
 
-basis_coho:=function(Q,p,n,m,N,r,W0,Winf,G0,Ginf,J0,Jinf,T0inv,Tinfinv,Kxy,exactcoho)
+  // Converts a sequence of polynomials to a vector  
 
+  dim:=#polys*(degx+1);
+  v:=[];
+  cnt:=1;
+  for i:=1 to #polys do
+    for j:=0 to degx do
+      v[cnt]:=Coefficient(polys[i],j);
+      cnt:=cnt+1;
+    end for;
+  end for;
+
+  V:=VectorSpace(K,dim);
+
+  return V!v;
+end function;
+
+
+
+basis_coho:=function(Q,p,r,W0,Winf,G0,Ginf,J0,Jinf,T0inv,Tinfinv,useU,basis0,basis1,basis2,K,Kx,Kxy)
+  
   // Compute a basis for H^1(X).
 
-  Zaxy:=Parent(Q);
-  Kx<x>:=BaseRing(Kxy);
-  K:=BaseRing(Kx); 
+  //Qx<x>:=PolynomialRing(RationalField());
+ // Qxy<y>:=PolynomialRing(Qx);
+  x:=Kx.1;
+  y:=Kxy.1;
   d:=Degree(Q);
   Kxd:=RSpace(Kx,d);
   degr:=Degree(r);
-
+  pIdeal:=ideal<RingOfIntegers(K)|p>;
+ 
   rK:=Zax_to_Kx(r,Kx);
   QK:=Zaxy_to_Kxy(Q,Kxy);
-
+ 
   W:=Winf*W0^(-1);
+
   Winv:=W^(-1);
   ord0W:=ord_0_mat(W);
   ordinfW:=ord_inf_mat(W);
   ord0Winv:=ord_0_mat(Winv);
   ordinfWinv:=ord_inf_mat(Winv);
 
-  // Compute a matrix with kernel (E0 intersect Einf).
+  // Compute a basis for E0
 
   deg_bound_E0:=degr-ord0W-ordinfW-2; 
   basisE0:=[];
   for i:=0 to d-1  do 
     for j:=0 to deg_bound_E0 do
-      Append(~basisE0,[i,j]);
+      basisE0:=Append(basisE0,[i,j]);
     end for;
   end for;
   dimE0:=#basisE0;
   E0:=VectorSpace(K,dimE0);
 
-  
+  // Compute a matrix with kernel (E0 intersect Einf).
+
   matE0nEinf:=ZeroMatrix(K,dimE0,d*(-ordinfW-ordinfWinv));
   for i:=1 to dimE0 do
     temp:=RowSequence(x^(basisE0[i][2])*Winv)[basisE0[i][1]+1];
     for j:=0 to d-1 do
       for k:=0 to (-ordinfW-ordinfWinv-1) do
-        matE0nEinf[i,j*(-ordinfW-ordinfWinv)+k+1]:=Coefficient(Numerator((Parent(W[1,1]).1)^(-ord0Winv)*temp[j+1]),k-ord0W-ord0Winv+degr-1); 
+        matE0nEinf[i,j*(-ordinfW-ordinfWinv)+k+1]:=Coefficient(Numerator((Parent(W[1,1]).1)^(-ord0Winv)*temp[j+1]),k-ord0W-ord0Winv+degr-1);
       end for;
     end for;
   end for;  
+
+  E0nEinf:=Kernel(matE0nEinf);
+
+  // Compute a matrix with kernel the elements of E0 logarithmic at infinity.
+
+  matlogforms:=ZeroMatrix(K,dimE0,d*(-ord0W-ordinfW-ordinfWinv-1));
+  for i:=1 to dimE0 do
+    temp:=RowSequence(x^(basisE0[i][2])*Winv)[basisE0[i][1]+1];
+    for j:=0 to d-1 do
+      for k:=0 to (-ord0W-ordinfW-ordinfWinv-2) do
+        matlogforms[i,j*(-ord0W-ordinfW-ordinfWinv-1)+k+1]:=Coefficient(Numerator((Parent(W[1,1]).1)^(-ord0Winv)*temp[j+1]),k-ord0Winv+degr);
+      end for;
+    end for;
+  end for;
+
+  logforms:=E0nEinf meet Kernel(matlogforms);
 
   // Compute the finite residues.
   
@@ -873,67 +913,36 @@ basis_coho:=function(Q,p,n,m,N,r,W0,Winf,G0,Ginf,J0,Jinf,T0inv,Tinfinv,Kxy,exact
     end for;
   end for;
 
-  // Compute a basis for (E0 intersect Einf) intersect (ker_res_0). 
+  // Compute the infinite residues. 
 
-  mat:=ZeroMatrix(K,dimE0,NumberOfColumns(matE0nEinf)+NumberOfColumns(matres0));
+  w:=Kxd!0;
+  w[1]:=1;
+  resinfdim:=Dimension(Parent(res_inf(w,QK,rK,W0,Winf,Ginf,Jinf,Tinfinv,Kxy)));
+  matresinf:=ZeroMatrix(K,dimE0,resinfdim); 
   for i:=1 to dimE0 do
-    for j:=1 to NumberOfColumns(matE0nEinf) do
-      mat[i,j]:=matE0nEinf[i,j];
-    end for;
-    for j:=1 to NumberOfColumns(matres0) do
-      mat[i,j+NumberOfColumns(matE0nEinf)]:=matres0[i,j];
-    end for;
-  end for;
-
-  if exactcoho then
-    b0:=Basis(Kernel(mat));               // Exact linear algebra (slow):
-  else
-    b0:=basis_kernel_mod_pN(mat,p,n,m,3*N); // Linear algebra mod p^N
-  end if;
-
-  dimE0nEinfnkerres0:=#b0;
-
-  // Compute a projection from E0 onto (E0 intersect Einf) intersect (ker_res_0).
-
-  pivotsb0:=[];
-  for i:=1 to #b0 do
-    j:=1;
-    while b0[i][j] eq 0 do
-      j:=j+1;
-    end while;
-    Append(~pivotsb0,j);
-  end for;
-
-  matb0:=IdentityMatrix(K,dimE0);
-  for i:=1 to dimE0 do
-    for j:=1 to #pivotsb0 do
-      if i eq pivotsb0[j] then
-        for k:=1 to dimE0 do
-          matb0[i,k]:=K!Eltseq(b0[j][k]);
-        end for;
-      end if;
+    w:=Kxd!0;
+    w[basisE0[i][1]+1]:=x^(basisE0[i][2]);
+    coefs:=res_inf(w,QK,rK,W0,Winf,Ginf,Jinf,Tinfinv,Kxy); 
+    for j:=1 to resinfdim do
+        matresinf[i,j]:=coefs[j];
     end for;
   end for;
-  b0:=RowSequence(matb0); // Extends the basis for E0nEinfnkerres0 to one for E0
-  matb0inv:=matb0^(-1);
-  for i:=dimE0 to 1 by -1 do
-    if not i in pivotsb0 then
-      matb0inv:=RemoveColumn(matb0inv,i); // The matrix of the projection from E0 onto E0nEinfnkerres0
-    end if;
-  end for;
 
+  forms2ndkind:=Kernel(matres0) meet Kernel(matresinf);
+  cocyc:=E0nEinf meet forms2ndkind;
+  forms1stkind:=logforms meet forms2ndkind;
+  
   // Compute a matrix with kernel (B0 intersect Binf)
 
   deg_bound_B0:=-ord0W-ordinfW-1;
   basisB0:=[];
   for i:=0 to d-1  do 
     for j:=0 to deg_bound_B0 do
-      Append(~basisB0,[i,j]);
+      basisB0:=Append(basisB0,[i,j]);
     end for;
   end for;
   dimB0:=#basisB0;
   B0:=VectorSpace(K,dimB0);
-
 
   matB0nBinf:=ZeroMatrix(K,dimB0,d*(-ordinfW-ordinfWinv));
   for i:=1 to dimB0 do
@@ -953,7 +962,6 @@ basis_coho:=function(Q,p,n,m,N,r,W0,Winf,G0,Ginf,J0,Jinf,T0inv,Tinfinv,Kxy,exact
   basisB0nBinf:=Basis(B0nBinf);
   dimB0nBinf:=#basisB0nBinf;  
 
-  
   list:=[];
   for i:=1 to dimB0nBinf do
     vec:=basisB0nBinf[i];
@@ -968,124 +976,99 @@ basis_coho:=function(Q,p,n,m,N,r,W0,Winf,G0,Ginf,J0,Jinf,T0inv,Tinfinv,Kxy,exact
       power_y:=basisE0[j][1];
       coefs[j]:=Coefficient(vecKxd[power_y+1],power_x);  
     end for;
-    Append(~list,(E0!coefs)*matb0inv);
+    list:=Append(list,E0!coefs);
   end for;
+  matd:=Matrix(list);
 
-  // Compute H1(X-x^(-1)(infty))
+  // Compute bases
 
-  cocyc:=VectorSpace(K,NumberOfColumns(matb0inv));
   cobound:=sub<cocyc|list>;
-  H1Xminusinfty:=Complement(cocyc,cobound);
-  dimH1Xminusinfty:=Dimension(H1Xminusinfty);
 
-  b1:=Basis(H1Xminusinfty) cat Basis(cobound);
-  matb1:=Matrix(b1);
-  matb1inv:=matb1^(-1);
-  for i:=#b1 to Dimension(H1Xminusinfty)+1 by -1 do
-    matb1inv:=RemoveColumn(matb1inv,i);
-  end for;
-
-  // Compute the infinite residues:
-
-  w:=Kxd!0;
-  w[1]:=1;
-  resinfdim:=Dimension(Parent(res_inf(w,QK,rK,W0,Winf,Ginf,Jinf,Tinfinv,Kxy)));
-  matresinf:=ZeroMatrix(K,dimH1Xminusinfty,resinfdim); 
-  
-  for i:=1 to dimH1Xminusinfty do   
-    v:=E0!0;
-    for j:=1 to Degree(cocyc) do
-      v:=v+b1[i][j]*(E0!(b0[pivotsb0[j]]));
-    end for;
-    w[basisE0[i][1]+1]:=x^(basisE0[i][2]);
-    w:=Kxd!0;
-    for j:=1 to dimE0 do
-      w[basisE0[j][1]+1]:=w[basisE0[j][1]+1]+v[j]*x^(basisE0[j][2]);
-    end for;
-    coefs:=res_inf(w,Q,rK,W0,Winf,Ginf,Jinf,Tinfinv,Kxy);   
-    for j:=1 to resinfdim do
-        matresinf[i,j]:=coefs[j];
-    end for;
-  end for;
-
-  // Compute H^1(X)
-
-  if exactcoho then
-    H1X:=Kernel(matresinf);                     // Exact linear algebra (slow)
-    b2:=Basis(H1X);
+  if basis0 eq [] then
+    b0:=Basis(forms1stkind);
   else
-    b2:=basis_kernel_mod_pN(matresinf,p,n,m,2*N); // Linear algebra mod p^N
+    b0:=[];
+    for i:=1 to #basis0 do
+      b0[i]:=polys_to_vec(basis0[i],deg_bound_E0,K);
+    end for;
+  end if;  
+
+  b5:=[];
+  for i:=2 to dimB0nBinf do
+    b5:=Append(b5,E0!list[i]);
+  end for;
+  
+  dualspace:=Complement(cocyc,forms1stkind+cobound); // Take the dual w.r.t. cup product? Right now just any complement of forms of the 1st kind in H^1(X).
+  if basis1 eq [] then
+    b1:=Basis(dualspace);
+  else
+    b1:=[];
+    for i:=1 to #basis1 do
+      b1[i]:=polys_to_vec(basis1[i],deg_bound_E0,K);
+    end for;
+  end if;  
+
+  basisH1X:=b0 cat b1;
+  dimH1X:=#basisH1X;
+
+  finiteregularlogarithmic:=logforms meet Kernel(matres0); // 1-forms that generate H^1(Y) over H^1(X), where Y=X-x^{-1}(\infty)
+  H1YmodH1X:=Complement(finiteregularlogarithmic,forms1stkind);
+
+  if basis2 eq [] then
+    b2:=Basis(H1YmodH1X);
+  else
+    b2:=[];
+    for i:=1 to #basis2 do
+      b2[i]:=polys_to_vec(basis2[i],deg_bound_E0,K);
+    end for;
   end if;
 
-  dimH1X:=#b2;
+  b3:=Basis(Complement(E0nEinf,cocyc+H1YmodH1X));
 
-  pivotsb2:=[];
-  for i:=1 to #b2 do
-    j:=1;
-    while b2[i][j] eq 0 do
-      j:=j+1;
-    end while;
-    Append(~pivotsb2,j);
-  end for;
+  b4:=Basis(Complement(E0,E0nEinf));  
   
-  matb2:=IdentityMatrix(K,dimH1Xminusinfty);
-  for i:=1 to dimH1Xminusinfty do
-    for j:=1 to #pivotsb2 do
-      if i eq pivotsb2[j] then
-        for k:=1 to dimH1Xminusinfty do
-          matb2[i,k]:=K!Eltseq(b2[j][k]);
-        end for;
-      end if;
+  b:=b0 cat b1 cat b2 cat b3 cat b4 cat b5;
+
+  dimH1U:=#b0+#b1+#b2+#b3;
+
+  if useU then
+    dim:=dimH1U;
+  else
+    dim:=dimH1X;
+  end if;
+
+  for i:=1 to dim do
+    valdenom:=0;
+    for j:=1 to dimE0 do 
+      valdenom:=Minimum(valdenom,Valuation(b[i][j],pIdeal));
     end for;
-  end for;
-  b2:=RowSequence(matb2); // Extends the basis for H1X to one for H1Xminusinfty
-  matb2inv:=matb2^(-1);
-  for i:=dimH1Xminusinfty to 1 by -1 do
-    if not i in pivotsb2 then
-      matb2inv:=RemoveColumn(matb2inv,i); // The matrix of the projection from H1Xminusinfty onto H1X
-    end if;
+    b[i]:=p^(-valdenom)*b[i];
+  end for; 
+
+  matb:=Matrix(b);
+  quo_map:=matb^(-1);
+
+  integrals:=[Kxd|];
+  for i:=2 to dimB0nBinf do
+    vec:=Kxd!0;
+    for j:=1 to dimB0 do
+      vec[basisB0[j][1]+1]:=vec[basisB0[j][1]+1]+(basisB0nBinf[i][j])*x^(basisB0[j][2]);
+    end for;
+    integrals:=Append(integrals,LeadingCoefficient(r)*vec); // factor lc(r) here, since working with dx/z basis instead of dx/r
   end for;
 
-  b:=[];
-  for i:=1 to dimH1X do
-    v:=cocyc!0;
-    for j:=1 to dimH1Xminusinfty do 
-      v:=v+b2[pivotsb2[i]][j]*b1[j];
-    end for;
-    w:=E0!0;
-    for j:=1 to dimE0nEinfnkerres0 do
-      w:=w+v[j]*(E0!b0[pivotsb0[j]]);
-    end for;
-    Append(~b,w);
-  end for;
-
-  // finding a common denominator for the elements of b
-
-  denom:=1;
-  for i:=1 to #b do
+  //Kxd:=RSpace(Kx,d);
+  basis:=[Kxd|];
+  
+  for i:=1 to dim do
+    vec:=Kxd!0;
     for j:=1 to dimE0 do
-      denom:=LCM(denom,Denominator(b[i][j]));
+      vec[basisE0[j][1]+1]:=vec[basisE0[j][1]+1]+(K!(b[i][j]))*(Kx.1)^(basisE0[j][2]);
     end for;
-  end for;
-  for i:=1 to #b do
-    b[i]:=denom*b[i];
+    basis:=Append(basis,vec);
   end for;
 
-  quo_map:=matb0inv*matb1inv*matb2inv/denom; 
-
-  Zax:=BaseRing(Zaxy);
-  Za:=BaseRing(Zax);
-  Zaxd:=RSpace(Zax,d);
-  basis:=[Zaxd|];
-
-  for i:=1 to #b do
-    vec:=Zaxd!0;
-    for j:=1 to dimE0 do
-      vec[basisE0[j][1]+1]:=vec[basisE0[j][1]+1]+(Za!Eltseq(b[i][j]))*(Zax.1)^(basisE0[j][2]);
-    end for;
-    Append(~basis,vec);
-  end for;
-
-  return basis,quo_map;
+  return basis,integrals,quo_map;
     
 end function;
+

@@ -741,3 +741,57 @@ change_basis_binfb0:=function(w,W0,Winf,Kx);
   w:=Evaluate(w,Kx.1);
   return w;
 end function;
+
+
+
+
+reduce_with_fs:=function(dif,Q,p,N,Nmax,r,W0,Winf,G0,Ginf,red_list_fin,red_list_inf,basis,integrals,quo_map,Kx)
+
+    // Reduces the differential dif (given w.r.t. the basis b^0 dx/z) in H^1(U).
+    // 
+    // returns:
+    // --------
+    // coefs    : the coefficients of the cohomology class (w.r.t. the given basis of H^1(U))
+    // f0,finf,f: the three functions one has to substract the d of, to get from dif to its 
+    //            reduction (w.r.t. b^0,b^inf,b^0)
+
+    d:=Degree(Q); 
+    degr:=Degree(r);
+
+    dif0:=dif;
+
+    dif,f0:=coho_red_fin(dif,Q,p,Nmax,r,G0,red_list_fin,Kx); 
+    dif:=change_basis_b0binf(dif,p,Nmax,r,W0,Winf,Kx);
+    dif,finf:=coho_red_inf(dif,Q,p,Nmax,r,W0,Winf,Ginf,red_list_inf,Kx); 
+    dif:=change_basis_binfb0(dif,W0,Winf,Kx);
+
+    W:=Winf*W0^(-1);
+    ord0W:=ord_0_mat(W);
+    ordinfW:=ord_inf_mat(W);
+
+    T:=[];
+    for k:=1 to d do
+      for j:=0 to degr-ord0W-ordinfW-2 do
+        T:=Append(T,Coefficient(dif[1,k],j));
+      end for;
+    end for;
+
+    v:=Vector(T)*quo_map;
+
+    coefs:=[];
+    for j:=1 to #basis do
+      coefs[j]:=reduce_mod_pN_K(v[j],p,N);
+    end for;
+
+    fend:=Parent(integrals[1])!0;
+    for j:=1 to #integrals do
+      fend:=fend+reduce_mod_pN_K(v[NumberOfColumns(quo_map)-#integrals+j],p,Nmax)*integrals[j];
+    end for;
+
+    // Optional test:
+
+    // test_reduce_with_fs(Vector(dif0),Q,p,N,Nmax,r,W0,Winf,G0,Ginf,red_list_fin,red_list_inf,basis,integrals,quo_map,coefs,f0,finf,f); //
+
+    return coefs,f0,finf,fend; 
+
+end function;

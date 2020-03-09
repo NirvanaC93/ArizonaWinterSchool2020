@@ -10,7 +10,7 @@ auxpolys:=function(Q,p,n,K);
   // Compute the polynomials r,Delta,s.
 
   Z:=IntegerRing();  
-  Kx:=RationalFunctionField(K);
+  Kx:=PolynomialRing(K);
   Kxy:=PolynomialRing(Kx);
   d:=Degree(Q);
   
@@ -131,7 +131,7 @@ genus:=function(Q,p,n,m)
   
   // Compute the genus of the curve defined by Q mod p
 
-  Fq:=ext<FiniteField(p)|m>;
+  Fq:=FiniteField(p^n);
   A2:=AffineSpace(Fq,2);
   Fpxy:=CoordinateRing(A2);
   Qmodp:=Fpxy!0;

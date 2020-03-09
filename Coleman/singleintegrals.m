@@ -28,7 +28,7 @@ frobmatrix:=function(Q,p,n,m,N,Nmax,g,r,W0,Winf,G0,Ginf,frobmatb0r,red_list_fin,
   for i:=1 to #basis do
 
     dif:=frobenius(basis[i],Q,p,n,m,Nmax,r,frobmatb0r);
-    dif:=convert_to_Kxzzinvdconvert_to_Kxzzinvd(dif,Q,Kx);
+    dif:=convert_to_Kxzzinvd(dif,Q,Kx);
 
     coefs,f0,finf,fend:=reduce_with_fs(dif,Q,p,N,Nmax,r,W0,Winf,G0,Ginf,red_list_fin,red_list_inf,basis,integrals,quo_map,Kx);
 
@@ -113,7 +113,7 @@ coleman_data:=function(Q,p,m,N:useU:=false,basis0:=[],basis1:=[],basis2:=[],verb
   e0,e0list,resG0list := fin_ram_ind(r,G0,Kx);
   einf,einflist,resGinf := inf_ram_ind(Ginf,Kx);
   Jinf,Tinf,Tinfinv:=jordan_inf(p,n,m,einflist,resGinf);
-  J0,T0,T0inv:=jordan_0(p,n,m,r,,e0list,resG0list,Kx);
+  J0,T0,T0inv:=jordan_0(p,n,m,r,e0list,resG0list,Kx);
   //e0,einf:=ram(J0,Jinf);
  
   delta:=Floor(log(p,-(ord_0_mat(W)+1)*einf))+Floor(log(p,(Floor((2*g-2)/d)+1)*einf));

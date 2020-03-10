@@ -23,7 +23,7 @@ auxpolys:=function(Q,p,n,K);
     for j:=1 to #D do
       E:=Coefficients(D[j]);
       while #E lt n do
-        Append(~E,0);
+        E:=Append(E,0);
       end while;
       QK:=QK+(K!E)*(Kx.1)^(j-1)*(Kxy.1)^(i-1);
     end for;

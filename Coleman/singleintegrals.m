@@ -75,6 +75,9 @@ coleman_data:=function(Q,p,m,N:useU:=false,basis0:=[],basis1:=[],basis2:=[],verb
   //m:=DefiningPolynomial(FiniteField(q));
   
   K:=NumberField(m);
+  if Type(K) eq Type(Rationals()) then
+	K:=QNF();
+  end if;
   Kx:=PolynomialRing(K);
   Kxy:=PolynomialRing(Kx);
   Kxyz:=LaurentSeriesRing(Kxy);

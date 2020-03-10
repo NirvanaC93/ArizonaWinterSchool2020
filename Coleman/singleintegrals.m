@@ -184,13 +184,14 @@ coleman_data:=function(Q,p,m,N:useU:=false,basis0:=[],basis1:=[],basis2:=[],verb
 
   // formatting the output into a record:
 
-  format:=recformat<Q,p,N,g,W0,Winf,r,Delta,s,G0,Ginf,e0,einf,delta,basis,quo_map,integrals,F,f0list,finflist,fendlist,Nmax,red_list_fin,red_list_inf,minpolys,K,n>;
+  format:=recformat<Q,p,N,g,W0,Winf,r,Delta,s,G0,Ginf,e0,einf,delta,basis,quo_map,integrals,F,f0list,finflist,fendlist,Nmax,red_list_fin,red_list_inf,minpolys,K,n,Kx>;
   out:=rec<format|>;
   out`Q:=Q; out`p:=p; out`N:=N; out`g:=g; out`W0:=W0; out`Winf:=Winf; out`r:=r; out`Delta:=Delta; out`s:=s; out`G0:=G0; out`Ginf:=Ginf; 
   out`e0:=e0; out`einf:=einf; out`delta:=delta; out`basis:=basis; out`quo_map:=quo_map; out`integrals:=integrals; out`F:=F; out`f0list:=f0list; 
   out`finflist:=finflist; out`fendlist:=fendlist; out`Nmax:=Nmax; out`red_list_fin:=red_list_fin; out`red_list_inf:=red_list_inf;
   out`K:=K;
   out`n:=n;
+  out`Kx:=Kx;
 
   return out;
 
@@ -202,11 +203,12 @@ set_point:=function(x0,y0,data)
   // Constructs a point from affine coordinates x0,y0. 
 
   Q:=data`Q; p:=data`p; N:=data`N; W0:=data`W0;
-  K:=data`K; n:=data`n;
+  K:=data`K; n:=data`n; Kx:=data`Kx; r:=data`r;
   d:=Degree(Q);
-
+  rK:=Zax_to_Ox(r,Kx);
+  
   if x0 in data`K then
-    Kp:=ext<pAdicField(p,N)|n>;
+    Kp:= comp<K,ideal<RingOfIntegers(K)|p>>;   //ext<pAdicField(p,N)|n>;
   else
     Kp:=Parent(x0);
   end if;
@@ -216,7 +218,7 @@ set_point:=function(x0,y0,data)
     error "x0 has negative valuation";
   end if;
   
-  if (not(W0 eq IdentityMatrix(BaseRing(W0),d))) and (Valuation(Evaluate(data`r,x0)) gt 0) then
+  if (not(W0 eq IdentityMatrix(BaseRing(W0),d))) and (Valuation(Evaluate(rK,x0)) gt 0) then
     error "W0 is not the identity and r(x0) is zero mod p";
   end if;
   

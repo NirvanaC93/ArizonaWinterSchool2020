@@ -212,6 +212,7 @@ set_point:=function(x0,y0,data)
   else
     Kp:=Parent(x0);
   end if;
+  Kpx:=PolynomialRing(Kp);
   x0:=Kp!x0; y0:=Kp!y0;
 
   if Valuation(x0) lt 0 then
@@ -233,7 +234,13 @@ set_point:=function(x0,y0,data)
     y0powers[i]:=(y0)^(i-1);
   end for;
   y0powers:=Vector(y0powers);
-  W0x0:=Transpose(Evaluate(W0,x0));
+  W0Kp:=ZeroMatrix(Kpx,d,d);
+  for i:=1 to d do
+    for j:=1 to d do
+      W0Kp[i][j]:=Kpx!(W0[i][j]);
+    end for;
+  end for;
+  W0x0:=Transpose(Evaluate(W0Kp,x0));
 
   P`b:=Eltseq(y0powers*W0x0); // the values of the b_i^0 at P
 
@@ -244,13 +251,19 @@ end function;
 set_bad_point:=function(x,b,inf,data)
 
   Q:=data`Q; p:=data`p; N:=data`N; 
-  Qp:=pAdicField(p,N); d:=Degree(Q);
+  K:=data`K; d:=Degree(Q);
+
+  if x in data`K then
+    Kp:= comp<K|ideal<RingOfIntegers(K)|p>>;   //ext<pAdicField(p,N)|n>;
+  else
+    Kp:=Parent(x);
+  end if;
 
   format:=recformat<x,b,inf,xt,bt,index>;
   P:=rec<format|>;
   P`inf:=inf;
-  P`x:=Qp!x;
-  P`b:=[Qp!b[i]:i in [1..d]];
+  P`x:=Kp!x;
+  P`b:=[Kp!b[i]:i in [1..d]];
 
   return P; 
 

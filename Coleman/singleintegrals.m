@@ -325,6 +325,7 @@ minpoly:=function(f1,f2)
   // f1,f2 are elements of a 1 dimensional function field over K
 
   FF:=Parent(f1);
+  K:=BaseRing(FF);
 
   d:=5;  
 
@@ -380,6 +381,8 @@ minpoly:=function(f1,f2)
   
   end while;
 
+  Kx:=PolynomialRing(K);
+  Kxy:=PolynomialRing(Kx);
   poly:=Kxy!0;
   for i:=0 to d do
     for j:=0 to d do

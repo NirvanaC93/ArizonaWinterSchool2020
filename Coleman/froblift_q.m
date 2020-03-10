@@ -160,7 +160,7 @@ Zaxy_to_Kxy:=function(f,Kxy)
     end for;
   end for;
   return g;
-end function
+end function;
 
 sigma_Ox:=function(f,p,n,m,N);
 

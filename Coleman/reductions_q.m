@@ -471,7 +471,7 @@ coho_red_fin:=function(w,Q,p,N,r,G0,redlistfin,Kx);
   // Reduce the 1-form w dx/r w.r.t. the basis [y^0,..,y^{d-1}] in cohomology 
   // until it has logaritmic poles at all points lying over the zeros of r.
 
-  Kxz:=LaurentSeriesRing(Kx);
+  Kxz<z>:=LaurentSeriesRing(Kx);
   d:=Degree(Q);
   V:=RSpace(Kx,d);
 

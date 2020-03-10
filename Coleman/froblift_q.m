@@ -56,6 +56,18 @@ push_to_S:=function(f,S)
 end function;
 
 
+matrix_push_to_Kp:=function(M,d,Kpx);
+  Kp:=BaseRing(Kpx);
+  MKp:=ZeroMatrix(Kpx,d,d);
+  for i:=1 to d do
+      for j:=1 to d do
+        MKp[i][j]:=Kpx!(M[i][j]);
+      end for;
+  end for;
+  return MKp;
+end function;
+
+
 push_to_Ox:=function(f,Ox);
 
   // Push to the ring Ox (from getrings)

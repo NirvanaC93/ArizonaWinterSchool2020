@@ -234,12 +234,7 @@ set_point:=function(x0,y0,data)
     y0powers[i]:=(y0)^(i-1);
   end for;
   y0powers:=Vector(y0powers);
-  W0Kp:=ZeroMatrix(Kpx,d,d);
-  for i:=1 to d do
-    for j:=1 to d do
-      W0Kp[i][j]:=Kpx!(W0[i][j]);
-    end for;
-  end for;
+  W0Kp:=matrix_push_to_Kp(W0,d,Kpx);
   W0x0:=Transpose(Evaluate(W0Kp,x0));
 
   P`b:=Eltseq(y0powers*W0x0); // the values of the b_i^0 at P

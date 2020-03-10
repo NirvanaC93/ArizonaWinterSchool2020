@@ -208,7 +208,7 @@ set_point:=function(x0,y0,data)
   rK:=Zax_to_Ox(r,Kx);
   
   if x0 in data`K then
-    Kp:= comp<K,ideal<RingOfIntegers(K)|p>>;   //ext<pAdicField(p,N)|n>;
+    Kp:= comp<K|ideal<RingOfIntegers(K)|p>>;   //ext<pAdicField(p,N)|n>;
   else
     Kp:=Parent(x0);
   end if;

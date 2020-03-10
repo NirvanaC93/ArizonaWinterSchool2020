@@ -422,7 +422,7 @@ update_minpolys:=function(data,inf,index);
 
   Kt:=RationalFunctionField(K); Kty:=PolynomialRing(Kt);
   
-  QK:=Zaxy_to_Kxy(Q);
+  QK:=Zaxy_to_Kxy(Q,Kxy);
   f:=Kty!0;
   for i:=0 to d do
     for j:=0 to Degree(Coefficient(QK,i)) do

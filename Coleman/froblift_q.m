@@ -155,7 +155,7 @@ Zaxy_to_Kxy:=function(f,Kxy)
     for j:=1 to #D do
       E:=Coefficients(D[j]);
       for k:=1 to #E do
-        g:=g+K.1^(k-1)*(K!E[k])*Ox.1^(j-1)*R.1^(i-1);
+        g:=g+K.1^(k-1)*(K!E[k])*Kx.1^(j-1)*Kxy.1^(i-1);
       end for;
     end for;
   end for;

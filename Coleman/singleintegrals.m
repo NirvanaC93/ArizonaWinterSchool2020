@@ -994,14 +994,16 @@ local_coord:=function(P,prec,data);
   end if;
 
   x0:=P`x; Q:=data`Q; p:=data`p; N:=data`N; W0:=data`W0; Winf:=data`Winf; d:=Degree(Q); b:=P`b;
-  K:=Parent(x0); Kt<t>:=PowerSeriesRing(K,prec); Kty:=PolynomialRing(Kt);
-  Qt:=RationalFunctionField(RationalField()); Qty:=PolynomialRing(Qt);
-  Fp:=FiniteField(p);
+  K:=data`K; Kxy:=data`Kxy;
+  Kp:=Parent(x0); Kpt<t>:=PowerSeriesRing(Kp,prec); Kpty:=PolynomialRing(Kpt);
+  Kt:=RationalFunctionField(K); Kty:=PolynomialRing(Kt);
+  Fq:=ResidueClassField(RingOfIntegers(Kp));
 
-  f:=Qty!0;
+  f:=Kty!0;
+  QK:=Zaxy_to_Kxy(Q,Kxy);
   for i:=0 to d do
-    for j:=0 to Degree(Coefficient(Q,i)) do
-      f:=f+Coefficient(Coefficient(Q,i),j)*Qty.1^i*Qt.1^j;
+    for j:=0 to Degree(Coefficient(QK,i)) do
+      f:=f+Coefficient(Coefficient(QK,i),j)*Kty.1^i*Kt.1^j;
     end for;
   end for;  
   FF:=FunctionField(f); // function field of curve
@@ -1014,18 +1016,18 @@ local_coord:=function(P,prec,data);
     ypowers:=Vector(b)*W0invx0;
     y0:=ypowers[2];
 
-    C:=Coefficients(Q);
+    C:=Coefficients(QK);
     D:=[];
     for i:=1 to #C do
       D[i]:=Evaluate(C[i],xt); 
     end for;
-    fy:=Kty!D;
+    fy:=Kpty!D;
     derfy:=Derivative(fy);
 
-    yt:=hensel_lift(fy,Kt!y0);
+    yt:=hensel_lift(fy,Kpt!y0);
 
     ypowerst:=[];
-    ypowerst[1]:=FieldOfFractions(Kt)!1;
+    ypowerst[1]:=FieldOfFractions(Kpt)!1;
     ypowerst[2]:=yt;
     for i:=3 to d do
       ypowerst[i]:=ypowerst[i-1]*yt;
@@ -1034,7 +1036,7 @@ local_coord:=function(P,prec,data);
 
     btnew:=[];
     for i:=1 to d do
-      btnew[i]:=Kt!bt[i];
+      btnew[i]:=Kpt!bt[i];
     end for;
     bt:=btnew;
 
@@ -1065,7 +1067,7 @@ local_coord:=function(P,prec,data);
         if assigned data`minpolys and data`minpolys[2][1,i+1] ne 0 then
           poly:=data`minpolys[2][1,i+1]; 
         else 
-          poly:=minpoly(FF!(1/Qt.1),bfun[i]);
+          poly:=minpoly(FF!(1/Kt.1),bfun[i]);
         end if;
 
         C:=Coefficients(poly);
@@ -1073,7 +1075,7 @@ local_coord:=function(P,prec,data);
         for j:=1 to #C do
           D[j]:=Evaluate(C[j],xt); 
         end for;
-        fy:=Kty!D;
+        fy:=Kpty!D;
         derfy:=Derivative(fy);
 
         modpprec:=mod_p_prec(fy);
@@ -1081,7 +1083,7 @@ local_coord:=function(P,prec,data);
         if assigned P`bt and Precision(Parent(P`bt[i])) ge modpprec then
           approxroot:=P`bt[i];
         else
-          tmodp:=1/Fpx.1-Fp!x0;
+          tmodp:=1/Fpx.1-Fq!x0;
           expamodp:=mod_p_expansion(bmodp[i],place,tmodp,modpprec);
           approxroot:=approx_root(fy,b[i],modpprec,expamodp);
         end if;
@@ -1104,7 +1106,7 @@ local_coord:=function(P,prec,data);
       for j:=1 to #C do
         D[j]:=Evaluate(C[j],t+b[index]); 
       end for;
-      fy:=Kty!D;
+      fy:=Kpty!D;
       derfy:=Derivative(fy);
 
       modpprec:=mod_p_prec(fy);
@@ -1112,7 +1114,7 @@ local_coord:=function(P,prec,data);
       if assigned P`xt and Precision(Parent(P`xt)) ge modpprec then
         approxroot:=P`xt;
       else
-        tmodp:=bmodp[index]-Fp!b[index];
+        tmodp:=bmodp[index]-Fq!b[index];
         expamodp:=mod_p_expansion(FFp!1/Fpx.1,place,tmodp,modpprec);
         approxroot:=approx_root(fy,x0,modpprec,expamodp);
       end if;
@@ -1138,7 +1140,7 @@ local_coord:=function(P,prec,data);
             D[j]:=Evaluate(C[j],t+b[index]); 
           end for;
 
-          fy:=Kty!D;
+          fy:=Kpty!D;
           derfy:=Derivative(fy);
 
           modpprec:=mod_p_prec(fy);
@@ -1146,7 +1148,7 @@ local_coord:=function(P,prec,data);
           if assigned P`bt and Precision(Parent(P`bt[i])) ge modpprec then
             approxroot:=P`bt[i];
           else
-            tmodp:=bmodp[index]-Fp!b[index];
+            tmodp:=bmodp[index]-Fq!b[index];
             expamodp:=mod_p_expansion(bmodp[i],place,tmodp,modpprec);
             approxroot:=approx_root(fy,b[i],modpprec,expamodp);
           end if;
@@ -1184,7 +1186,7 @@ local_coord:=function(P,prec,data);
         if assigned data`minpolys and data`minpolys[1][1,i+1] ne 0 then
           poly:=data`minpolys[1][1,i+1];
         else
-          poly:=minpoly(FF!Qt.1,bfun[i]);
+          poly:=minpoly(FF!Kt.1,bfun[i]);
         end if;
 
         C:=Coefficients(poly);
@@ -1192,7 +1194,7 @@ local_coord:=function(P,prec,data);
         for j:=1 to #C do
           D[j]:=Evaluate(C[j],xt); 
         end for;
-        fy:=Kty!D;
+        fy:=Kpty!D;
         derfy:=Derivative(fy);
 
         modpprec:=mod_p_prec(fy);
@@ -1200,7 +1202,7 @@ local_coord:=function(P,prec,data);
         if assigned P`bt and Precision(Parent(P`bt[i])) ge modpprec then
           approxroot:=P`bt[i];
         else
-          tmodp:=Fpx.1-Fp!x0;
+          tmodp:=Fpx.1-Fq!x0;
           expamodp:=mod_p_expansion(bmodp[i],place,tmodp,modpprec);
           approxroot:=approx_root(fy,b[i],modpprec,expamodp);
         end if;
@@ -1215,7 +1217,7 @@ local_coord:=function(P,prec,data);
       if assigned data`minpolys and data`minpolys[1][index+1,1] ne 0 then
         poly:=data`minpolys[1][index+1,1];
       else
-        poly:=minpoly(bfun[index],FF!Qt.1);
+        poly:=minpoly(bfun[index],FF!Kt.1);
       end if;
 
       C:=Coefficients(poly);
@@ -1223,7 +1225,7 @@ local_coord:=function(P,prec,data);
       for j:=1 to #C do
         D[j]:=Evaluate(C[j],t+b[index]); 
       end for;
-      fy:=Kty!D;
+      fy:=Kpty!D;
       derfy:=Derivative(fy);
 
       modpprec:=mod_p_prec(fy);
@@ -1231,7 +1233,7 @@ local_coord:=function(P,prec,data);
       if assigned P`xt and Precision(Parent(P`xt)) ge modpprec then
         approxroot:=P`xt;
       else
-        tmodp:=bmodp[index]-Fp!b[index];
+        tmodp:=bmodp[index]-Fq!b[index];
         expamodp:=mod_p_expansion(FFp!Fpx.1,place,tmodp,modpprec);
         approxroot:=approx_root(fy,x0,modpprec,expamodp);
       end if;
@@ -1257,7 +1259,7 @@ local_coord:=function(P,prec,data);
             D[j]:=Evaluate(C[j],t+b[index]);
           end for;
 
-          fy:=Kty!D;
+          fy:=Kpty!D;
 
           derfy:=Derivative(fy);
 
@@ -1266,7 +1268,7 @@ local_coord:=function(P,prec,data);
           if assigned P`bt and Precision(Parent(P`bt[i])) ge modpprec then
             approxroot:=P`bt[i];
           else
-            tmodp:=bmodp[index]-Fp!b[index];
+            tmodp:=bmodp[index]-Fq!b[index];
             expamodp:=mod_p_expansion(bmodp[i],place,tmodp,modpprec);
             approxroot:=approx_root(fy,b[i],modpprec,expamodp);
           end if;

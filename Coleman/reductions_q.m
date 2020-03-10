@@ -479,7 +479,7 @@ coho_red_fin:=function(w,Q,p,N,r,G0,redlistfin,Kx);
   lc_rK:=LeadingCoefficient(rK);
   rK:=Numerator(rK/lc_rK);
 
-  Kxzd:=Rspace(Kxz,d);
+  Kxzd:=RSpace(Kxz,d);
   f0:=Kxzd!0;
 
   M0:=ZeroMatrix(Kx,d,d);

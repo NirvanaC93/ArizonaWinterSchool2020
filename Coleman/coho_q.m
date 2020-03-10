@@ -1057,13 +1057,13 @@ basis_coho:=function(Q,p,r,W0,Winf,G0,Ginf,J0,Jinf,T0inv,Tinfinv,useU,basis0,bas
     integrals:=Append(integrals,LeadingCoefficient(r)*vec); // factor lc(r) here, since working with dx/z basis instead of dx/r
   end for;
 
-  //Kxd:=RSpace(Kx,d);
-  basis:=[Kxd|];
+  Zaxd:=RSpace(Zax,d);
+  basis:=[Zaxd|];
   
   for i:=1 to dim do
-    vec:=Kxd!0;
+    vec:=Zaxd!0;
     for j:=1 to dimE0 do
-      vec[basisE0[j][1]+1]:=vec[basisE0[j][1]+1]+(K!(b[i][j]))*(Kx.1)^(basisE0[j][2]);
+      vec[basisE0[j][1]+1]:=vec[basisE0[j][1]+1]+(Za!Eltseq(b[i][j]))*(Zax.1)^(basisE0[j][2]);
     end for;
     basis:=Append(basis,vec);
   end for;

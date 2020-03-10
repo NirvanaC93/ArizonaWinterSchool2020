@@ -1098,7 +1098,7 @@ local_coord:=function(P,prec,data);
       if assigned data`minpolys and data`minpolys[2][index+1,1] ne 0 then
         poly:=data`minpolys[2][index+1,1];
       else
-        poly:=minpoly(bfun[index],FF!1/(Qt.1));
+        poly:=minpoly(bfun[index],FF!1/(Kt.1));
       end if;
 
       C:=Coefficients(poly);

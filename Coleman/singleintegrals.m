@@ -26,7 +26,6 @@ frobmatrix:=function(Q,p,n,m,N,Nmax,g,r,W0,Winf,G0,Ginf,frobmatb0r,red_list_fin,
   fendlist:=[];
 
   for i:=1 to #basis do
-	print Parent(basis[i]);
     dif:=frobenius(basis[i],Q,p,n,m,Nmax,r,frobmatb0r);
     dif:=convert_to_Kxzzinvd(dif,Q,Kx);
 
@@ -135,9 +134,7 @@ coleman_data:=function(Q,p,m,N:useU:=false,basis0:=[],basis1:=[],basis2:=[],verb
 
   basis,integrals,quo_map:=basis_coho(Q,p,r,W0,Winf,G0,Ginf,J0,Jinf,T0inv,Tinfinv,useU,basis0,basis1,basis2,K,Kx,Kxy);
   
-  
-  print basis;
-  print Parent(basis[1]);
+ 
   if verbose then 
     print "Time (s) :    ", Cputime(t);
     print "Memory (Mb) : ", GetMaximumMemoryUsage() div (1024^2), "\n";

@@ -479,6 +479,9 @@ coho_red_fin:=function(w,Q,p,N,r,G0,redlistfin,Kx);
   lc_rK:=LeadingCoefficient(rK);
   rK:=Numerator(rK/lc_rK);
 
+  Kxzd:=Rspace(Kxz,d);
+  f0:=Kxzd!0;
+
   M0:=ZeroMatrix(Kx,d,d);
   for i:=1 to d do 
     for j:=1 to d do 
@@ -495,12 +498,12 @@ coho_red_fin:=function(w,Q,p,N,r,G0,redlistfin,Kx);
   end for;
 
   if zero then
-    return w;
+    return w,f0;
   end if;
 
   l0:=-val_Kxz_d(w);
   if l0 le 0 then
-    return w;
+    return w,f0;
   end if;
 
   wcoefs:=[];
@@ -523,6 +526,11 @@ coho_red_fin:=function(w,Q,p,N,r,G0,redlistfin,Kx);
     for i:=1 to d do
       vvec[i]:=vvec[i] mod rK;
     end for;
+    
+    for i:=1 to d do
+      f0[i]:=f0[i]+(Kxz!reduce_mod_pN_Kx(vvec[i],p,N))*z^(-l);
+    end for;
+    
     mat:=ZeroMatrix(Kx,d,d);
     for i:=1 to d do
       for j:=1 to d do
@@ -554,7 +562,7 @@ coho_red_fin:=function(w,Q,p,N,r,G0,redlistfin,Kx);
     w[i]:=(Kxz!C);
   end for;
 
-  return w;
+  return w,f0;
 end function;
 
 

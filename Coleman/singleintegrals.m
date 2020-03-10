@@ -185,12 +185,12 @@ coleman_data:=function(Q,p,m,N:useU:=false,basis0:=[],basis1:=[],basis2:=[],verb
 
   // formatting the output into a record:
 
-  format:=recformat<Q,p,N,g,W0,Winf,r,Delta,s,G0,Ginf,e0,einf,delta,basis,quo_map,integrals,F,f0list,finflist,fendlist,Nmax,red_list_fin,red_list_inf,minpolys,K,n,Kx,Kp>;
+  format:=recformat<Q,p,N,g,W0,Winf,r,Delta,s,G0,Ginf,e0,einf,delta,basis,quo_map,integrals,F,f0list,finflist,fendlist,Nmax,red_list_fin,red_list_inf,minpolys,K,n,Kx,Kxy,Kp>;
   out:=rec<format|>;
   out`Q:=Q; out`p:=p; out`N:=N; out`g:=g; out`W0:=W0; out`Winf:=Winf; out`r:=r; out`Delta:=Delta; out`s:=s; out`G0:=G0; out`Ginf:=Ginf; 
   out`e0:=e0; out`einf:=einf; out`delta:=delta; out`basis:=basis; out`quo_map:=quo_map; out`integrals:=integrals; out`F:=F; out`f0list:=f0list; 
   out`finflist:=finflist; out`fendlist:=fendlist; out`Nmax:=Nmax; out`red_list_fin:=red_list_fin; out`red_list_inf:=red_list_inf;
-  out`K:=K; out`n:=n; out`Kx:=Kx; out`Kp:=Kp;
+  out`K:=K; out`n:=n; out`Kx:=Kx; out`Kxy:=Kxy; out`Kp:=Kp;
 
   return out;
 
@@ -410,19 +410,20 @@ update_minpolys:=function(data,inf,index);
   // TODO comment
 
   Q:=data`Q; W0:=data`W0; Winf:=data`Winf; 
-  d:=Degree(Q);
+  d:=Degree(Q); Kxy:=data`Kxy; K:=data`K;
 
   if not assigned data`minpolys then
-    data`minpolys:=[ZeroMatrix(Qxy,d+2,d+2),ZeroMatrix(Qxy,d+2,d+2)];
+    data`minpolys:=[ZeroMatrix(Kxy,d+2,d+2),ZeroMatrix(Kxy,d+2,d+2)];
   end if;
   minpolys:=data`minpolys;
 
-  Qt:=RationalFunctionField(RationalField()); Qty:=PolynomialRing(Qt);
-
-  f:=Qty!0;
+  Kt:=RationalFunctionField(K); Kty:=PolynomialRing(Kt);
+  
+  QK:=Zaxy_to_Kxy(Q);
+  f:=Kty!0;
   for i:=0 to d do
-    for j:=0 to Degree(Coefficient(Q,i)) do
-      f:=f+Coefficient(Coefficient(Q,i),j)*Qty.1^i*Qt.1^j;
+    for j:=0 to Degree(Coefficient(QK,i)) do
+      f:=f+Coefficient(Coefficient(QK,i),j)*Kty.1^i*Kt.1^j;
     end for;
   end for;  
   FF:=FunctionField(f); // function field of curve
@@ -446,12 +447,12 @@ update_minpolys:=function(data,inf,index);
     if index eq 0 then
        for i:=1 to d do
          if minpolys[2][1,i+1] eq 0 then
-           minpolys[2][1,i+1]:=minpoly(FF!(1/Qt.1),bfun[i]);
+           minpolys[2][1,i+1]:=minpoly(FF!(1/Kt.1),bfun[i]);
          end if;
        end for;
     else
       if minpolys[2][index+1,1] eq 0 then
-        minpolys[2][index+1,1]:=minpoly(bfun[index],FF!(1/Qt.1));
+        minpolys[2][index+1,1]:=minpoly(bfun[index],FF!(1/Kt.1));
       end if;
       for i:=1 to d do
         if minpolys[2][index+1,i+1] eq 0 then
@@ -463,12 +464,12 @@ update_minpolys:=function(data,inf,index);
     if index eq 0 then
       for i:=1 to d do
         if minpolys[1][1,i+1] eq 0 then
-          minpolys[1][1,i+1]:=minpoly(FF!Qt.1,bfun[i]);
+          minpolys[1][1,i+1]:=minpoly(FF!Kt.1,bfun[i]);
         end if;
       end for;
     else
       if minpolys[1][index+1,1] eq 0 then
-        minpolys[1][index+1,1]:=minpoly(bfun[index],FF!Qt.1);
+        minpolys[1][index+1,1]:=minpoly(bfun[index],FF!Kt.1);
       end if;
       for i:=1 to d do
         if minpolys[1][index+1,i+1] eq 0 then
@@ -1871,6 +1872,7 @@ coleman_integrals_on_basis:=function(P1,P2,data:e:=1)
 
   // First make sure that if P1 or P2 is bad, then it is very bad
 
+  
   if is_bad(P1,data) and not is_very_bad(P1,data) then
     S1:=find_bad_point_in_disk(P1,data);
     _,index:=local_data(S1,data);
@@ -2003,6 +2005,160 @@ coleman_integrals_on_basis:=function(P1,P2,data:e:=1)
 
   return IP1P2,NIP1P2;
 end function;
+
+
+
+
+coleman_integrals_on_basis_between_good_points:=function(P1,P2,data:e:=1)
+
+  // Integrals of basis elements from P1 to P2. We ASSUME that P1 and P2 are good. Else, behavior is undefined. 
+
+  F:=data`F; Q:=data`Q; basis:=data`basis; x1:=P1`x; f0list:=data`f0list; finflist:=data`finflist; fendlist:=data`fendlist; p:=data`p; N:=data`N; delta:=data`delta;
+  d:=Degree(Q); K:=Parent(x1); 
+
+
+//  WE IGNORE THE FOLLOWING PART WHICH DEALS WITH BAD POINTS
+  /*
+  // First make sure that if P1 or P2 is bad, then it is very bad
+
+  if is_bad(P1,data) and not is_very_bad(P1,data) then
+    S1:=find_bad_point_in_disk(P1,data);
+    _,index:=local_data(S1,data);
+    data:=update_minpolys(data,S1`inf,index);
+    xt,bt,index:=local_coord(S1,tadicprec(data,e),data);
+    S1`xt:=xt;
+    S1`bt:=bt;
+    S1`index:=index;
+    IS1P1,NIS1P1:=tiny_integrals_on_basis(S1,P1,data:prec:=tadicprec(data,e));
+    IS1P2,NIS1P2:=$$(S1,P2,data:e:=e);
+    IP1P2:=IS1P2-IS1P1;
+    NIP1P2:=Ceiling(Minimum([NIS1P1,NIS1P2]));
+    return IP1P2,NIP1P2;
+  end if;
+
+  if is_bad(P2,data) and not is_very_bad(P2,data) then
+    S2:=find_bad_point_in_disk(P2,data);
+    _,index:=local_data(S2,data);
+    data:=update_minpolys(data,S2`inf,index);
+    xt,bt,index:=local_coord(S2,tadicprec(data,e),data);
+    S2`xt:=xt;
+    S2`bt:=bt;
+    S2`index:=index;
+    IP1S2,NIP1S2:=$$(P1,S2,data:e:=e);
+    IP2S2,NIP2S2:=tiny_integrals_on_basis(P2,S2,data:prec:=tadicprec(data,e));
+    IP1P2:=IP1S2-IP2S2;
+    NIP1P2:=Ceiling(Minimum([NIP1S2,NIP2S2]));
+    return IP1P2,NIP1P2;
+  end if;
+*/
+  // If P1,P2 is bad (hence very bad), use a near boundary point.
+
+  _,index:=local_data(P1,data);
+  data:=update_minpolys(data,P1`inf,index);
+  _,index:=local_data(P2,data);
+  data:=update_minpolys(data,P2`inf,index);
+/*
+  if is_bad(P1,data) then
+    xt,bt,index:=local_coord(P1,tadicprec(data,e),data);
+    P1`xt:=xt;       
+    P1`bt:=bt;       
+    P1`index:=index; 
+    Qp:=Parent(P1`x);
+    Qpa<a>:=PolynomialRing(Qp);
+    K<a>:=TotallyRamifiedExtension(Qp,a^e-p);
+    format:=recformat<x,b,inf,xt,bt,index>;
+    S1:=rec<format|>;                                                    
+    S1`inf:=P1`inf;
+    S1`x:=Evaluate(xt,a);
+    S1`b:=[Evaluate(bt[i],a):i in [1..d]];
+  else
+*/
+    xt,bt,index:=local_coord(P1,tadicprec(data,1),data);
+    P1`xt:=xt;       
+    P1`bt:=bt;       
+    P1`index:=index; 
+    S1:=P1;
+//  end if;
+
+/*
+  if is_bad(P2,data) then
+    xt,bt,index:=local_coord(P2,tadicprec(data,e),data);
+    P2`xt:=xt;       
+    P2`bt:=bt;       
+    P2`index:=index; 
+    if not is_bad(P1,data) then
+      Qp:=Parent(P2`x);
+      Qpa<a>:=PolynomialRing(Qp);
+      K<a>:=TotallyRamifiedExtension(Qp,a^e-p);
+    end if;
+    format:=recformat<x,b,inf,xt,bt,index>;
+    S2:=rec<format|>;                                                    
+    S2`inf:=P2`inf;
+    S2`x:=Evaluate(xt,a);
+    S2`b:=[Evaluate(bt[i],a):i in [1..d]];
+  else
+*/
+    xt,bt,index:=local_coord(P2,tadicprec(data,1),data);
+    P2`xt:=xt;       
+    P2`bt:=bt;       
+    P2`index:=index; 
+    S2:=P2;
+ // end if;
+
+  // Split up the integral and compute the tiny ones.
+
+  tinyP1toS1,NP1toS1:=tiny_integrals_on_basis(P1,S1,data);
+  tinyP2toS2,NP2toS2:=tiny_integrals_on_basis(P2,S2,data);
+
+  FS1:=frobenius_pt(S1,data);
+  FS2:=frobenius_pt(S2,data);
+
+  tinyS1toFS1,NS1toFS1:=tiny_integrals_on_basis(S1,FS1,data:P:=P1); 
+  tinyS2toFS2,NFS2toS2:=tiny_integrals_on_basis(S2,FS2,data:P:=P2); 
+
+  NIP1P2:=Minimum([NP1toS1,NP2toS2,NS1toFS1,NFS2toS2]);  
+
+  // Evaluate all functions.
+
+  I:=[];
+  for i:=1 to #basis do
+    f0iS1,Nf0iS1:=evalf0(f0list[i],S1,data);
+    f0iS2,Nf0iS2:=evalf0(f0list[i],S2,data);
+    finfiS1,NfinfiS1:=evalfinf(finflist[i],S1,data);
+    finfiS2,NfinfiS2:=evalfinf(finflist[i],S2,data);
+    fendiS1,NfendiS1:=evalfend(fendlist[i],S1,data);
+    fendiS2,NfendiS2:=evalfend(fendlist[i],S2,data);
+    NIP1P2:=Minimum([NIP1P2,Nf0iS1,Nf0iS2,NfinfiS1,NfinfiS2,NfendiS1,NfendiS2]);
+    I[i]:=(K!f0iS1)-(K!f0iS2)+(K!finfiS1)-(K!finfiS2)+(K!fendiS1)-(K!fendiS2)-(K!tinyS1toFS1[i])+(K!tinyS2toFS2[i]);
+  end for; 
+
+  valIP1P2:=Minimum([Valuation(I[i])/Valuation(K!p):i in [1..#basis]]);
+
+  mat:=(F-IdentityMatrix(RationalField(),#basis));
+  valdet:=Valuation(Determinant(mat),p);
+  mat:=mat^-1;
+  Nmat:=N-valdet-delta;
+  valmat:=Minimum([Valuation(e,p):e in Eltseq(mat)]);
+
+  NIP1P2:=Minimum([NIP1P2+valmat,Nmat+valIP1P2]);                            
+  
+  IS1S2:=Vector(I)*Transpose(ChangeRing(mat,K));    // Solve the linear system.
+  IP1P2:=IS1S2+ChangeRing(tinyP1toS1,K)-ChangeRing(tinyP2toS2,K);
+  IP1P2,Nround:=round_to_Qp(IP1P2);
+
+  assert Nround ge NIP1P2;                          // Check that rounding error is within error bound.
+  
+  NIP1P2:=Ceiling(NIP1P2);
+
+  for i:=1 to #basis do
+    IP1P2[i]:=IP1P2[i]+O(Parent(IP1P2[i])!p^(NIP1P2));
+  end for;
+
+  return IP1P2,NIP1P2;
+end function;
+
+
+
 
 
 coleman_integral:=function(P1,P2,dif,data:e:=1,IP1P2:=0,NIP1P2:=0);

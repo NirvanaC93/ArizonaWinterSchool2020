@@ -145,6 +145,22 @@ Zaxy_to_R:=function(f,R);
   return g;
 end function;
 
+Zaxy_to_Kxy:=function(f,Kxy)
+  Kx:=BaseRing(Kxy);
+  K:=BaseRing(Kx);
+  C:=Coefficients(f);
+  g:=Kxy!0;
+  for i:=1 to #C do
+    D:=Coefficients(C[i]);
+    for j:=1 to #D do
+      E:=Coefficients(D[j]);
+      for k:=1 to #E do
+        g:=g+K.1^(k-1)*(K!E[k])*Ox.1^(j-1)*R.1^(i-1);
+      end for
+    end for;
+  end for;
+  return g;
+end function
 
 sigma_Ox:=function(f,p,n,m,N);
 

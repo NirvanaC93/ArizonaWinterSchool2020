@@ -19,8 +19,8 @@ end function;
 frobmatrix:=function(Q,p,n,m,N,Nmax,g,r,W0,Winf,G0,Ginf,frobmatb0r,red_list_fin,red_list_inf,basis,integrals,quo_map,verbose,Kx);
 
   // Compute the matrix of F_p on H^1(X) mod p^N with respect to 'basis'.
-
-  F:=ZeroMatrix(Rationals(),#basis,#basis);  
+  K:=BaseRing(Kx);
+  F:=ZeroMatrix(K,#basis,#basis);  
   f0list:=[];
   finflist:=[];
   fendlist:=[];

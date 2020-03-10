@@ -997,6 +997,7 @@ local_coord:=function(P,prec,data);
   K:=data`K; Kxy:=data`Kxy;
   Kp:=Parent(x0); Kpt<t>:=PowerSeriesRing(Kp,prec); Kpty:=PolynomialRing(Kpt);
   Kt:=RationalFunctionField(K); Kty:=PolynomialRing(Kt);
+  Kpx:=PolynomialRing(Kp);
   Fq:=ResidueClassField(RingOfIntegers(Kp));
 
   f:=Kty!0;
@@ -1007,12 +1008,13 @@ local_coord:=function(P,prec,data);
     end for;
   end for;  
   FF:=FunctionField(f); // function field of curve
-
+  
+  W0Kp:=matrix_push_to_Kp(W0,d,Kpx);
   if not is_bad(P,data) then // finite good point
 
     xt:=t+x0;
 
-    W0invx0:=Transpose(Evaluate(W0^(-1),x0));
+    W0invx0:=Transpose(Evaluate(W0Kp^(-1),x0));
     ypowers:=Vector(b)*W0invx0;
     y0:=ypowers[2];
 
@@ -1032,8 +1034,10 @@ local_coord:=function(P,prec,data);
     for i:=3 to d do
       ypowerst[i]:=ypowerst[i-1]*yt;
     end for;
-    bt:=Eltseq(Vector(ypowerst)*Transpose(Evaluate(W0,xt)));
-
+    print "here";
+    bt:=Eltseq(Vector(ypowerst)*Transpose(Evaluate(W0Kp,xt)));
+    print "here2";
+    
     btnew:=[];
     for i:=1 to d do
       btnew[i]:=Kpt!bt[i];

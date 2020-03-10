@@ -185,9 +185,9 @@ coleman_data:=function(Q,p,m,N:useU:=false,basis0:=[],basis1:=[],basis2:=[],verb
 
   // formatting the output into a record:
 
-  format:=recformat<Q,p,N,g,W0,Winf,r,Delta,s,G0,Ginf,e0,einf,delta,basis,quo_map,integrals,F,f0list,finflist,fendlist,Nmax,red_list_fin,red_list_inf,minpolys,K,n,Kx,Kxy,Kp>;
+  format:=recformat<Q,p,m,N,g,W0,Winf,r,Delta,s,G0,Ginf,e0,einf,delta,basis,quo_map,integrals,F,f0list,finflist,fendlist,Nmax,red_list_fin,red_list_inf,minpolys,K,n,Kx,Kxy,Kp>;
   out:=rec<format|>;
-  out`Q:=Q; out`p:=p; out`N:=N; out`g:=g; out`W0:=W0; out`Winf:=Winf; out`r:=r; out`Delta:=Delta; out`s:=s; out`G0:=G0; out`Ginf:=Ginf; 
+  out`Q:=Q; out`p:=p; out`m:=m; out`N:=N; out`g:=g; out`W0:=W0; out`Winf:=Winf; out`r:=r; out`Delta:=Delta; out`s:=s; out`G0:=G0; out`Ginf:=Ginf; 
   out`e0:=e0; out`einf:=einf; out`delta:=delta; out`basis:=basis; out`quo_map:=quo_map; out`integrals:=integrals; out`F:=F; out`f0list:=f0list; 
   out`finflist:=finflist; out`fendlist:=fendlist; out`Nmax:=Nmax; out`red_list_fin:=red_list_fin; out`red_list_inf:=red_list_inf;
   out`K:=K; out`n:=n; out`Kx:=Kx; out`Kxy:=Kxy; out`Kp:=Kp;
@@ -684,18 +684,23 @@ local_data:=function(P,data)
 
   // For a point P, returns the ramification index of the map x on the residue disk at P
 
-  Q:=data`Q; p:=data`p; W0:=data`W0; Winf:=data`Winf; x0:=P`x; b:=P`b; d:=Degree(Q);
+  Q:=data`Q; p:=data`p; W0:=data`W0; Winf:=data`Winf; x0:=P`x; b:=P`b; m:=data`m; d:=Degree(Q); n:=Degree(m);
 
   if not is_bad(P,data) then
     eP:=1;
     index:=0;
     return eP,index;
   else     
-    Fp:=FiniteField(p); Fpx:=RationalFunctionField(Fp); Fpxy:=PolynomialRing(Fpx);
+  Op:=RingOfIntegers(Kp); Fp:=ResidueClassField(Op); Fpx:=RationalFunctionField(Fp); Fpxy:=PolynomialRing(Fpx);
     f:=Fpxy!0;
-    for i:=0 to d do
-      for j:=0 to Degree(Coefficient(Q,i)) do
-        f:=f+(Fp!Coefficient(Coefficient(Q,i),j))*Fpxy.1^i*Fpx.1^j;
+    C:=Coefficients(Q);
+    for i:=1 to #C do
+      D:=Coefficients(C[i]);
+      for j:=1 to #D do
+        E:=Coefficients(D[j]);
+        for k:=1 to #E do
+          f:=f+(Fp!E[k])*Fp.1^k*Fpxy.1^i*Fpx.1^j;
+        end for;
       end for;
     end for;  
     FFp:=FunctionField(f); // function field of curve mod p

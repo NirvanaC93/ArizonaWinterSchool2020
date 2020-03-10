@@ -205,7 +205,7 @@ set_point:=function(x0,y0,data)
   Q:=data`Q; p:=data`p; N:=data`N; W0:=data`W0;
   K:=data`K; n:=data`n; Kx:=data`Kx; r:=data`r;
   d:=Degree(Q);
-  rK:=Zax_to_Ox(r,Kx);
+  rK:=Zax_to_Kx(r,Kx);
   
   if x0 in data`K then
     Kp:= comp<K|ideal<RingOfIntegers(K)|p>>;   //ext<pAdicField(p,N)|n>;

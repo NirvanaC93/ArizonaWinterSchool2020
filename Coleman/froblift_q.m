@@ -78,11 +78,24 @@ Zax_to_Ox:=function(f,Ox);
   g:=Ox!0;
   C:=Coefficients(f);
   for i:=1 to #C do
-    coeffs:=Coefficients(C[i]);
-    if #coeffs eq 0 then
-      coeffs:=[0];
-    end if;
-    g:=g+(O!coeffs)*Ox.1^(i-1);
+    g:=g+(O!Coefficients(C[i]))*Ox.1^(i-1);
+  end for;
+  return g;
+end function;
+
+
+Zax_to_Kx:=function(f,Kx);
+
+  // Push from Zax to the ring Ox
+
+  K:=BaseRing(Kx);
+  g:=Kx!0;
+  C:=Coefficients(f);
+  for i:=1 to #C do
+    D:=Coefficients(C[i]);
+    for j:=1 to #D do
+      g:=g+D[j]*K.1^(j-1)*Kx.1^(i-1);
+    end for;
   end for;
   return g;
 end function;

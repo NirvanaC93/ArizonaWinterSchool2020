@@ -646,6 +646,11 @@ coho_red_inf:=function(w,Q,p,N,r,W0,Winf,Ginf,redlistinf,Kx);
   Kttinv<t>:=LaurentSeriesRing(K);
   Kttinvd:=RSpace(Kttinv,d);
   
+  Kxxinv<x>:=LaurentSeriesRing(K);
+  Kxxinvd:=RSpace(Kxxinv,d);
+  
+  finf:=Kxxinvd!0;
+  
   degr:=Degree(r);
 
   zero:=true;
@@ -656,7 +661,7 @@ coho_red_inf:=function(w,Q,p,N,r,W0,Winf,Ginf,redlistinf,Kx);
   end for;
 
   if zero then
-    return w;
+    return w,finf;
   end if;
   
   W:=Winf*W0^(-1);  
@@ -709,6 +714,10 @@ coho_red_inf:=function(w,Q,p,N,r,W0,Winf,Ginf,redlistinf,Kx);
     end for;
     red_mat:=redlistinf[m];
     vvec:=wvec*red_mat;
+    for i:=1 to d do
+      finf[i]:=finf[i]+reduce_mod_pN_K(vvec[i],p,N)*x^(m);
+    end for;	
+    
     dif:=((Kttinvd!vvec)*t^(-m)*Minftinv)+rtinv*m*t^(1-m)*(Kttinvd!vvec);
     for i:=1 to d do
       difmodpN:=reduce_mod_pN_Kttinv(dif[i],p,N);
@@ -724,7 +733,7 @@ coho_red_inf:=function(w,Q,p,N,r,W0,Winf,Ginf,redlistinf,Kx);
     w[i]:=reduce_mod_pN_Kttinv(t^(-m0-degr+1)*(Kttinv!wcoefs[i]),p,N);
   end for;    
 
-  return w;
+  return w,finf;
 end function;
 
 

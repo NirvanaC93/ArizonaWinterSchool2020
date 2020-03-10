@@ -55,6 +55,7 @@ auxpolys:=function(Q,p,n,K);
   v[2*d-1]:=Delta;
   M:=RModule(Kx,2*d-1);
   sol:=Solution(Syl,M!v);
+  sol:=sol[1];
 
   // take out (if possible) common factor of Delta and s
 

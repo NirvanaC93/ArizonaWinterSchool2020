@@ -98,7 +98,7 @@ end function;
 
 Zax_to_Kx:=function(f,Kx);
 
-  // Push from Zax to the ring Ox
+  // Push from Zax to the ring Kx
 
   K:=BaseRing(Kx);
   g:=Kx!0;
@@ -107,6 +107,23 @@ Zax_to_Kx:=function(f,Kx);
     D:=Coefficients(C[i]);
     for j:=1 to #D do
       g:=g+D[j]*K.1^(j-1)*Kx.1^(i-1);
+    end for;
+  end for;
+  return g;
+end function;
+
+
+Zax_to_Kpx:=function(f,Kpx);
+
+  // Push from Zax to the ring Kpx
+
+  Kp:=BaseRing(Kpx);
+  g:=Kpx!0;
+  C:=Coefficients(f);
+  for i:=1 to #C do
+    D:=Coefficients(C[i]);
+    for j:=1 to #D do
+      g:=g+D[j]*Kp.1^(j-1)*Kpx.1^(i-1);
     end for;
   end for;
   return g;

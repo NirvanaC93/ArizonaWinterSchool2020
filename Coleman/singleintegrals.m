@@ -77,6 +77,7 @@ coleman_data:=function(Q,p,m,N:useU:=false,basis0:=[],basis1:=[],basis2:=[],verb
   if Type(K) eq Type(Rationals()) then
 	K:=QNF();
   end if;
+  Kp:=comp<K|ideal<RingOfIntegers(K)|p>>;
   Kx:=PolynomialRing(K);
   Kxy:=PolynomialRing(Kx);
   Kxyz:=LaurentSeriesRing(Kxy);
@@ -184,14 +185,12 @@ coleman_data:=function(Q,p,m,N:useU:=false,basis0:=[],basis1:=[],basis2:=[],verb
 
   // formatting the output into a record:
 
-  format:=recformat<Q,p,N,g,W0,Winf,r,Delta,s,G0,Ginf,e0,einf,delta,basis,quo_map,integrals,F,f0list,finflist,fendlist,Nmax,red_list_fin,red_list_inf,minpolys,K,n,Kx>;
+  format:=recformat<Q,p,N,g,W0,Winf,r,Delta,s,G0,Ginf,e0,einf,delta,basis,quo_map,integrals,F,f0list,finflist,fendlist,Nmax,red_list_fin,red_list_inf,minpolys,K,n,Kx,Kp>;
   out:=rec<format|>;
   out`Q:=Q; out`p:=p; out`N:=N; out`g:=g; out`W0:=W0; out`Winf:=Winf; out`r:=r; out`Delta:=Delta; out`s:=s; out`G0:=G0; out`Ginf:=Ginf; 
   out`e0:=e0; out`einf:=einf; out`delta:=delta; out`basis:=basis; out`quo_map:=quo_map; out`integrals:=integrals; out`F:=F; out`f0list:=f0list; 
   out`finflist:=finflist; out`fendlist:=fendlist; out`Nmax:=Nmax; out`red_list_fin:=red_list_fin; out`red_list_inf:=red_list_inf;
-  out`K:=K;
-  out`n:=n;
-  out`Kx:=Kx;
+  out`K:=K; out`n:=n; out`Kx:=Kx; out`Kp:=Kp;
 
   return out;
 
@@ -203,15 +202,9 @@ set_point:=function(x0,y0,data)
   // Constructs a point from affine coordinates x0,y0. 
 
   Q:=data`Q; p:=data`p; N:=data`N; W0:=data`W0;
-  K:=data`K; n:=data`n; Kx:=data`Kx; r:=data`r;
+  K:=data`K; Kp:=data`Kp; n:=data`n; Kx:=data`Kx; r:=data`r;
   d:=Degree(Q);
   rK:=Zax_to_Kx(r,Kx);
-  
-  if x0 in data`K then
-    Kp:= comp<K|ideal<RingOfIntegers(K)|p>>;   //ext<pAdicField(p,N)|n>;
-  else
-    Kp:=Parent(x0);
-  end if;
   Kpx:=PolynomialRing(Kp);
   x0:=Kp!x0; y0:=Kp!y0;
 
@@ -246,13 +239,7 @@ end function;
 set_bad_point:=function(x,b,inf,data)
 
   Q:=data`Q; p:=data`p; N:=data`N; 
-  K:=data`K; d:=Degree(Q);
-
-  if x in data`K then
-    Kp:= comp<K|ideal<RingOfIntegers(K)|p>>;   //ext<pAdicField(p,N)|n>;
-  else
-    Kp:=Parent(x);
-  end if;
+  K:=data`K; Kp:=data`Kp; d:=Degree(Q);
 
   format:=recformat<x,b,inf,xt,bt,index>;
   P:=rec<format|>;
@@ -269,13 +256,16 @@ is_bad:=function(P,data)
 
   // check whether the point P is bad
 
-  x0:=P`x; r:=data`r;
+  x0:=P`x; r:=data`r; 
+  Kp:=Parent(x0);
+  Kpx:=PolynomialRing(Kp);
+  rKp:=Zax_to_Kpx(r,Kpx);
 
   if P`inf then // infinite point
     return true;
   end if;
 
-  if Valuation(Evaluate(r,x0)) gt 0 then // finite bad point
+  if Valuation(Evaluate(rKp,x0)) gt 0 then // finite bad point
     return true;
   end if;
 
@@ -288,14 +278,17 @@ is_very_bad:=function(P,data)
 
   // check whether the point P is very bad
 
-  x0:=P`x; r:=data`r; N:=data`N;
+  x0:=P`x; r:=data`r; N:=data`N; 
+  Kp:=Parent(x0);
+  Kpx:=PolynomialRing(Kp);
+  rKp:=Zax_to_Kpx(r,Kpx);
 
   if P`inf then // infinite point
     if Valuation(x0) ge N then // infinite very bad point
       return true;
     end if;
   else // finite point
-    if Valuation(Evaluate(r,x0)) ge N then // finite very bad point
+    if Valuation(Evaluate(rKp,x0)) ge N then // finite very bad point
       return true;
     end if;
   end if;
@@ -328,8 +321,8 @@ end function;
 
 minpoly:=function(f1,f2)
 
-  // computes the minimum polynomial of f2 over Q(f1), where
-  // f1,f2 are elements of a 1 dimensional function field over Q
+  // computes the minimum polynomial of f2 over K(f1), where
+  // f1,f2 are elements of a 1 dimensional function field over K
 
   FF:=Parent(f1);
 
@@ -387,10 +380,10 @@ minpoly:=function(f1,f2)
   
   end while;
 
-  poly:=Qxy!0;
+  poly:=Kxy!0;
   for i:=0 to d do
     for j:=0 to d do
-      poly:=poly+R[i*(d+1)+j+1]*Qx.1^j*Qxy.1^i;
+      poly:=poly+R[i*(d+1)+j+1]*Kx.1^j*Kxy.1^i;
     end for;
   end for;
 

@@ -493,51 +493,57 @@ frobenius_pt:=function(P,data);
 
   // Computes the image of P under Frobenius
 
-  x0:=P`x; Q:=data`Q; p:=data`p; N:=data`N; W0:=data`W0; Winf:=data`Winf;
-  d:=Degree(Q); K:=Parent(x0); Ky:=PolynomialRing(K);
-
-  x0p:=x0^p;
+  x0:=P`x; Q:=data`Q; p:=data`p; N:=data`N; W0:=data`W0; Winf:=data`Winf; Kp:=data`Kp;
+  K:=data`K; Kxy:=data`Kxy; ip:=data`ip;
+  n:=data`n;
+  q:=p^n;
+  d:=Degree(Q);  Kpy:=PolynomialRing(Kp);
+    
+  W0Kp:=matrix_push_to_Kp(W0,d,Kpy);
+  
+  x0q:=x0^q;
   b:=P`b;
 
-  Qt:=RationalFunctionField(RationalField()); Qty:=PolynomialRing(Qt);
-
-  f:=Qty!0;
+  Kt:=RationalFunctionField(K); Kty:=PolynomialRing(Kt);
+  QK:=Zaxy_to_Kxy(Q,Kxy);
+  f:=Kty!0;
   for i:=0 to d do
-    for j:=0 to Degree(Coefficient(Q,i)) do
-      f:=f+Coefficient(Coefficient(Q,i),j)*Qty.1^i*Qt.1^j;
+    for j:=0 to Degree(Coefficient(QK,i)) do
+      f:=f+Coefficient(Coefficient(QK,i),j)*Kty.1^i*Kt.1^j;
     end for;
   end for;  
   FF:=FunctionField(f); // function field of curve
 
   if not is_bad(P,data) then // finite good point
     
-    W0invx0:=Transpose(Evaluate(W0^(-1),x0));
-
+    W0invx0:=Transpose(Evaluate(W0Kp^(-1),x0));
+    
     ypowers:=Vector(b)*W0invx0;
     y0:=ypowers[2];
   
-    C:=Coefficients(Q);
+    C:=[Kx_to_Kpt(c,ip,Kpy) : c in Coefficients(QK)];
     D:=[];
     for i:=1 to #C do
-      D[i]:=Evaluate(C[i],x0p);
+      D[i]:=Evaluate(C[i],x0q);
     end for;
-    fy:=Ky!D;
+    fy:=Kpy!D;
 
-    y0p:=HenselLift(fy,y0^p); // Hensel lifting
+    y0q:=HenselLift(fy,y0^q); // Hensel lifting
   
-    y0ppowers:=[];
-    y0ppowers[1]:=K!1;
+    y0qpowers:=[];
+    y0qpowers[1]:=Kp!1;
     for i:=2 to d do
-      y0ppowers[i]:=y0p^(i-1);
+      y0qpowers[i]:=y0q^(i-1);
     end for;
-    y0ppowers:=Vector(y0ppowers);
+    y0qpowers:=Vector(y0qpowers);
 
-    W0x0:=Transpose(Evaluate(W0,x0));
+    W0x0:=Transpose(Evaluate(W0Kp,x0));
   
-    b:=Eltseq(y0ppowers*W0x0);
+    b:=Eltseq(y0qpowers*W0x0);
 
   elif P`inf then // infinite point
-  
+    error "INFINITE POINTS NOT IMPLEMENTED!";
+    /*
     for i:=1 to d do
       bi:=FF!0;
       for j:=1 to d do
@@ -547,15 +553,15 @@ frobenius_pt:=function(P,data);
       if assigned data`minpolys and data`minpolys[2][1,i+1] ne 0 then
         poly:=data`minpolys[2][1,i+1];
       else
-        poly:=minpoly(FF!(1/Qt.1),bi);
+        poly:=minpoly(FF!(1/Kt.1),bi);
       end if;
 
-      C:=Coefficients(poly);
+      C:=[Kx_to_Kpt(c,ip,Kpy) : i in Coefficients(poly)];
       D:=[];
       for i:=1 to #C do
-        D[i]:=Evaluate(C[i],x0p); 
+        D[i]:=Evaluate(C[i],x0q); 
       end for;
-      fy:=Ky!D;
+      fy:=Kpy!D;
 
       fac:=Factorisation(fy); // Roots has some problems that Factorisation does not
       zeros:=[];
@@ -578,9 +584,10 @@ frobenius_pt:=function(P,data);
         error "Frobenius does not converge at P";
       end if;
     end for;
-
+   */
   else // finite bad point
-
+   error "BAD POINTS NOT SUPPORTED!";
+   /*
    for i:=1 to d do
       bi:=FF!0;
       for j:=1 to d do
@@ -621,10 +628,10 @@ frobenius_pt:=function(P,data);
         error "Frobenius does not converge at P";
       end if;
     end for;
-
+    */
   end if;
   
-    P`x:=x0p;
+    P`x:=x0q;
     P`b:=b;
     delete P`xt;
     delete P`bt;
@@ -1003,6 +1010,7 @@ local_coord:=function(P,prec,data);
   K:=data`K; Kxy:=data`Kxy; Kp:=data`Kp; ip:=data`ip;
   //Kp:=Parent(x0);
   Kpt<t>:=PowerSeriesRing(Kp,prec); Kpty:=PolynomialRing(Kpt);
+  KptF:=FieldOfFractions(Kpt);
   Kt:=RationalFunctionField(K); Kty:=PolynomialRing(Kt);
   Kpx:=PolynomialRing(Kp);
   Fq:=ResidueClassField(RingOfIntegers(Kp));
@@ -1028,7 +1036,6 @@ local_coord:=function(P,prec,data);
     C:=[Kx_to_Kpt(c,ip,Kpt) : c in Coefficients(QK)];
     D:=[];
     for i:=1 to #C do
-      print Parent(C[i]);
       D[i]:=Evaluate(C[i],xt); 
     end for;
     fy:=Kpty!D;
@@ -1037,14 +1044,13 @@ local_coord:=function(P,prec,data);
     yt:=hensel_lift(fy,Kpt!y0);
 
     ypowerst:=[];
-    ypowerst[1]:=FieldOfFractions(Kpt)!1;
+    ypowerst[1]:=KptF!1;
     ypowerst[2]:=yt;
     for i:=3 to d do
       ypowerst[i]:=ypowerst[i-1]*yt;
     end for;
-    print "here";
-    bt:=Eltseq(Vector(ypowerst)*Transpose(Evaluate(W0Kp,xt)));
-    print "here2";
+    
+    bt:=Eltseq(Vector(ypowerst)*ChangeRing(Transpose(Evaluate(W0Kp,xt)),KptF));
     
     btnew:=[];
     for i:=1 to d do

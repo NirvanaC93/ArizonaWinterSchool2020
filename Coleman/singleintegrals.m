@@ -1,3 +1,9 @@
+WeakValuation:=function(f)
+  coeffs:=Coefficients(f);
+  m:=Minimum([i : i in [0..Degree(f)] | not IsWeaklyZero(coeffs[i+1])]);
+  return m;
+end function;
+
 max_prec:=function(Q,p,N,g,W0,Winf,e0,einf);
 
   // Compute the p-adic precision required for provable correctness
@@ -800,8 +806,8 @@ hensel_lift:=function(fy,root,data);
     error "In Hensel lift of power series, derivative has leading term divisible by p";
   end if;
 
-  v1:=Valuation(Evaluate(fy,root));
-  v2:=Valuation(Evaluate(derfy,root));
+  v1:=WeakValuation(Evaluate(fy,root));
+  v2:=WeakValuation(Evaluate(derfy,root));
 
   if not v1 gt 2*v2 then
     error "Condition Hensel's Lemma not satisfied";
@@ -893,11 +899,6 @@ mod_p_prec:=function(fy);
  
 end function;
 
-WeakValuation:=function(f)
-  coeffs:=Coefficients(f);
-  m:=Minimum([i : i in [0..Degree(f)] | not IsWeaklyZero(coeffs[i+1])]);
-  return m;
-end function;
 
 approx_root:=function(fy,y0,modpprec,expamodp,data)
 

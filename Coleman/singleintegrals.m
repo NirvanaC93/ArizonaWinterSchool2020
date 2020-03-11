@@ -886,8 +886,13 @@ mod_p_prec:=function(fy);
  
 end function;
 
+WeakValuation:=function(f)
+  coeffs:=Coefficients(f);
+  m:=Minimum([i : i in [0..Degree(f)] | not IsWeaklyZero(coeffs[i+1])]);
+  return m;
+end function;
 
-approx_root:=function(fy,y0,modpprec,expamodp)
+approx_root:=function(fy,y0,modpprec,expamodp,data)
 
   // Computes an approximation to t-adic precision modpprec of 
   // a root of the polynomial fy over Kp[[t]] which is congruent to:
@@ -897,47 +902,47 @@ approx_root:=function(fy,y0,modpprec,expamodp)
   //
   // This approximation is then used as root in hensel_lift.
 
+  K:=data`K;
   Kpty:=Parent(fy);
   Kpt:=BaseRing(Kpty);
   tprec:=Precision(Kpt); // t-adic precision
   Kp:=BaseRing(Kpt);
   Op:=RingOfIntegers(Kp);
-  Fp:=FiniteField(p);
-  pprec:=Precision(K);  // p-adic precision
-  Zp:=pAdicRing(p,pprec);
-  Zpt:=PowerSeriesRing(Zp,tprec);
-  Zpz:=PolynomialRing(Zp);
+  Fp,red:=ResidueClassField(Op);
+  p:=Characteristic(Fp);
+  pprec:=Precision(Kp);  // p-adic precision
+  Opt:=PowerSeriesRing(Op,tprec);
+  Opz:=PolynomialRing(Op);
 
-  Qt:=PowerSeriesRing(RationalField(),tprec);
-  Qty:=PolynomialRing(Qt);
-  Qz:=PolynomialRing(RationalField());
-  Qzt:=PowerSeriesRing(Qz,tprec);
+  Kt:=PowerSeriesRing(K,tprec);
+  Kty:=PolynomialRing(Kt);
+  Kpz:=PolynomialRing(Kp);
+  Kpzt:=PowerSeriesRing(Kpz,tprec);
   
-  roots:=[[*Kt!y0,1*]];
+  roots:=[[*Kpt!y0,1*]];
   i:=1;
   while i le #roots do
     root:=roots[i][1];
     Nroot:=roots[i][2];
     if Nroot lt modpprec then
       roots:=Remove(roots,i);
-      newroot:=root+Kty.1*Kt.1^Nroot;
+      newroot:=root+Kpty.1*Kpt.1^Nroot;
       C:=Coefficients(fy);
-      fynewroot:=Kty!0;
+      fynewroot:=Kpty!0;
       for j:=1 to #C do
-        fynewroot:=fynewroot+(Kt!C[j])*newroot^(j-1);
+        fynewroot:=fynewroot+(C[j])*newroot^(j-1);
       end for;
-      fynewroot:=Qty!Kty!fynewroot;
-      fznewroot:=Qzt!0;
+      fznewroot:=Kpzt!0;
       for j:=0 to Degree(fynewroot) do
         for k:=0 to tprec-1 do
-          fznewroot:=fznewroot+Coefficient(Coefficient(fynewroot,j),k)*(Qz.1)^j*(Qzt.1)^k;
+          fznewroot:=fznewroot+Coefficient(Coefficient(fynewroot,j),k)*(Kpz.1)^j*(Kpzt.1)^k;
         end for;
       end for;
-      fac:=Factorisation(Zpz!Coefficient(fznewroot,Valuation(fznewroot)));
+      fac:=Factorisation(Opz!Coefficient(fznewroot,WeakValuation(fznewroot)));
       for j:=1 to #fac do
         if (Degree(fac[j][1]) eq 1) and (Coefficient(fac[j][1],1) eq 1) then
           sol:=-Coefficient(fac[j][1],0); 
-          if Fp!sol eq Coefficient(expamodp,Nroot) then
+          if red(sol) eq Coefficient(expamodp,Nroot) then
             roots:=Insert(roots,i,[*Evaluate(newroot,sol),Nroot+1*]);
           end if;
         end if;
@@ -946,16 +951,16 @@ approx_root:=function(fy,y0,modpprec,expamodp)
       i:=i+1;
     end if;
   end while;
-
+  roots;
   if #roots ne 1 then
     error "something is wrong, number of approximate roots is different from 1";
   end if;
 
   root:=roots[1][1];
-  root:=Zpt!Qt!root;
+  root:=Opt!root;
 
-  v1:=Valuation(Zpt!Qt!Evaluate(fy,root));
-  v2:=Valuation(Zpt!Qt!Evaluate(Derivative(fy),root));
+  v1:=Valuation(Evaluate(fy,root));
+  v2:=Valuation(Evaluate(Derivative(fy),root));
 
   if v1 le 2*v2 then
     error "something is wrong, approximate root not good enough for Hensel lift";
@@ -1255,7 +1260,7 @@ local_coord:=function(P,prec,data);
       else
         tmodp:=bmodp[index]-Fq!b[index];
         expamodp:=mod_p_expansion(FFp!Fpx.1,place,tmodp,modpprec);
-        approxroot:=approx_root(fy,x0,modpprec,expamodp);
+        approxroot:=approx_root(fy,x0,modpprec,expamodp,data);
       end if;
 
       xt:=hensel_lift(fy,approxroot,data);  

@@ -946,12 +946,14 @@ approx_root:=function(fy,y0,modpprec,expamodp,data)
         end for;
       end for;
       fac:=Factorisation(Opz!Coefficient(fznewroot,WeakValuation(fznewroot)));
+      fac;
       for j:=1 to #fac do
         if (Degree(fac[j][1]) eq 1) and (Coefficient(fac[j][1],1) eq 1) then
           sol:=-Coefficient(fac[j][1],0); 
           if red(sol) eq Coefficient(expamodp,Nroot) then
             roots:=Insert(roots,i,[*Evaluate(newroot,sol),Nroot+1*]);
           end if;
+          roots;
         end if;
       end for;
     else

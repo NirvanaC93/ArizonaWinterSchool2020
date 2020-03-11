@@ -691,7 +691,7 @@ local_data:=function(P,data)
 
   // For a point P, returns the ramification index of the map x on the residue disk at P
 
-  Q:=data`Q; p:=data`p; W0:=data`W0; Winf:=data`Winf; x0:=P`x; b:=P`b; m:=data`m; d:=Degree(Q); n:=Degree(m);
+  Q:=data`Q; p:=data`p; W0:=data`W0; Winf:=data`Winf; x0:=P`x; b:=P`b; d:=Degree(Q); n:=data`n;
   Kp:=data`Kp;
 
   if not is_bad(P,data) then
@@ -773,34 +773,35 @@ local_data:=function(P,data)
 end function;
 
 
-hensel_lift:=function(fy,root);
+hensel_lift:=function(fy,root,data);
 
-  // Finds a root of the polynomial fy over Qp[[t]]
+  // Finds a root of the polynomial fy over Kp[[t]]
   // by Hensel lifting from an approximate root.
   //
   // Assumes that the starting criterion for Hensel's 
   // lemma is satisfied
 
-  Kty:=Parent(fy);
-  Kt:=BaseRing(Kty);
-  K:=BaseRing(Kt);
-  tprec:=Precision(Kt); // t-adic precision
-  Qt:=PowerSeriesRing(RationalField(),tprec);
-  Qty:=PolynomialRing(Qt);
-  p:=Prime(K);
-  pprec:=Precision(K);  // p-adic precision
-  Zp:=pAdicRing(p,pprec);
-  Zpt:=PowerSeriesRing(Zp,tprec);  
+  K:=data`K; ip:=data`ip; 
+  Kpty:=Parent(fy);
+  Kpt:=BaseRing(Kpty);
+  Kp:=BaseRing(Kpt);
+  tprec:=Precision(Kpt); // t-adic precision
+  Kt:=PowerSeriesRing(K,tprec);
+  Kty:=PolynomialRing(Kt);
+  p:=Prime(Kp);
+  pprec:=Precision(Kp);  // p-adic precision
+  Op:=RingOfIntegers(Kp);
+  Opt:=PowerSeriesRing(Op,tprec);  
 
-  fy:=Qty!fy;
+  //fy:=Kty!fy;
   derfy:=Derivative(fy);  
-
-  if not Valuation(LeadingCoefficient(Qt!Evaluate(derfy,root)),p) eq 0 then
+  root:=Kx_to_Kpt(root,ip,Kpt);
+  if not Valuation(LeadingCoefficient(Evaluate(derfy,root))) eq 0 then
     error "In Hensel lift of power series, derivative has leading term divisible by p";
   end if;
 
-  v1:=Valuation(Qt!Zpt!Evaluate(fy,root));
-  v2:=Valuation(Qt!Zpt!Evaluate(derfy,root));
+  v1:=Valuation(Evaluate(fy,root));
+  v2:=Valuation(Evaluate(derfy,root));
 
   if not v1 gt 2*v2 then
     error "Condition Hensel's Lemma not satisfied";
@@ -816,10 +817,9 @@ hensel_lift:=function(fy,root);
   prec_seq:=Reverse(prec_seq);
 
   for j:=1 to #prec_seq do
-    root:=Qt!root;
     root:=ChangePrecision(root,prec_seq[j]);
-    root:=root-(Qt!Zpt!Evaluate(fy,root))/(Qt!Zpt!Evaluate(derfy,root));
-    root:=Zpt!root;
+    root:=root-(Evaluate(fy,root))/(Evaluate(derfy,root));
+    root:=Opt!root;
   end for;
 
   return root;
@@ -830,21 +830,30 @@ end function;
 mod_p_prec:=function(fy);
 
   // Finds the t-adic precision necessary to separate the roots
-  // of the polynomial fy over Qp[[t]] modulo p and start Hensel lift.
+  // of the polynomial fy over Kp[[t]] modulo p and start Hensel lift.
   //
   // Temporarily uses intrinsic Factorisation instead of 
   // intrinsic Roots because of multiple problems with Roots.
   
-  Kty:=Parent(fy);
-  Kt:=BaseRing(Kty);
-  tprec:=Precision(Kt);
-  K:=BaseRing(Kt);
-  p:=Prime(K);
-  Fp:=FiniteField(p);
+  Kpty:=Parent(fy);
+  Kpt:=BaseRing(Kpty);
+  tprec:=Precision(Kpt);
+  Kp:=BaseRing(Kpt);
+  Op:=RingOfIntegers(Kp);
+  Fp,red:=ResidueClassField(Op);
   Fpt:=PowerSeriesRing(Fp,tprec);
   Fpty:=PolynomialRing(Fpt);
 
-  fymodp:=Fpty!fy;
+  f:=Fpty!0;
+    C:=Coefficients(fy);
+    for i:=1 to #C do
+      D:=Coefficients(C[i]);
+      for j:=1 to #D do
+          f:=f+red(D[j])*Fpty.1^(i-1)*Fpt.1^(j-1);
+      end for;
+    end for;  
+
+  fymodp:=f;
   derfymodp:=Derivative(fymodp);
 
   zeros:=[];
@@ -888,19 +897,18 @@ end function;
 approx_root:=function(fy,y0,modpprec,expamodp)
 
   // Computes an approximation to t-adic precision modpprec of 
-  // a root of the polynomial fy over Qp[[t]] which is congruent to:
+  // a root of the polynomial fy over Kp[[t]] which is congruent to:
   //
   // y0 modulo t
   // expamodp modulo p 
   //
   // This approximation is then used as root in hensel_lift.
 
-  Kty:=Parent(fy);
-  Kt:=BaseRing(Kty);
-  tprec:=Precision(Kt); // t-adic precision
-  K:=BaseRing(Kt);
-
-  p:=Prime(K);
+  Kpty:=Parent(fy);
+  Kpt:=BaseRing(Kpty);
+  tprec:=Precision(Kpt); // t-adic precision
+  Kp:=BaseRing(Kpt);
+  Op:=RingOfIntegers(Kp);
   Fp:=FiniteField(p);
   pprec:=Precision(K);  // p-adic precision
   Zp:=pAdicRing(p,pprec);
@@ -1041,7 +1049,7 @@ local_coord:=function(P,prec,data);
     fy:=Kpty!D;
     derfy:=Derivative(fy);
 
-    yt:=hensel_lift(fy,Kpt!y0);
+    yt:=hensel_lift(fy,Kpt!y0,data);
 
     ypowerst:=[];
     ypowerst[1]:=KptF!1;
@@ -1106,7 +1114,7 @@ local_coord:=function(P,prec,data);
           approxroot:=approx_root(fy,b[i],modpprec,expamodp);
         end if;
 
-        bti:=hensel_lift(fy,approxroot);
+        bti:=hensel_lift(fy,approxroot,data);
         bt[i]:=bti;
 
       end for;
@@ -1137,7 +1145,7 @@ local_coord:=function(P,prec,data);
         approxroot:=approx_root(fy,x0,modpprec,expamodp);
       end if;
 
-      xt:=hensel_lift(fy,approxroot);
+      xt:=hensel_lift(fy,approxroot,data);
 
       bt:=[];
       for i:=1 to d do 
@@ -1171,7 +1179,7 @@ local_coord:=function(P,prec,data);
             approxroot:=approx_root(fy,b[i],modpprec,expamodp);
           end if;
 
-          bti:=hensel_lift(fy,approxroot);
+          bti:=hensel_lift(fy,approxroot,data);
           bt[i]:=bti;
 
         end if;
@@ -1225,7 +1233,7 @@ local_coord:=function(P,prec,data);
           approxroot:=approx_root(fy,b[i],modpprec,expamodp);
         end if;
 
-        bti:=hensel_lift(fy,approxroot);
+        bti:=hensel_lift(fy,approxroot,data);
         bt[i]:=bti;
 
       end for;
@@ -1256,7 +1264,7 @@ local_coord:=function(P,prec,data);
         approxroot:=approx_root(fy,x0,modpprec,expamodp);
       end if;
 
-      xt:=hensel_lift(fy,approxroot);  
+      xt:=hensel_lift(fy,approxroot,data);  
 
       bt:=[];
       for i:=1 to d do 
@@ -1291,7 +1299,7 @@ local_coord:=function(P,prec,data);
             approxroot:=approx_root(fy,b[i],modpprec,expamodp);
           end if;
 
-          bti:=hensel_lift(fy,approxroot);
+          bti:=hensel_lift(fy,approxroot,data);
           bt[i]:=bti;
 
         end if;

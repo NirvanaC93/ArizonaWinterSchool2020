@@ -1510,7 +1510,7 @@ tiny_integrals_on_basis:=function(P1,P2,data:prec:=0,P:=0);
   // residue disk as P1 has to be specified.
 
   x1:=P1`x; x2:=P2`x; b1:=P1`b; b2:=P2`b; Q:=data`Q; p:=data`p; N:=data`N; W0:=data`W0; Winf:=data`Winf; Kx:=data`Kx; r:=data`r; basis:=data`basis; N:=data`N;
-  d:=Degree(Q); W:=Winf*W0^(-1); Kp:=data`Kp;  rK:=data`rK;
+  d:=Degree(Q); W:=Winf*W0^(-1); Kp:=data`Kp;  rK:=data`rK; K:=data`K;
 
   if not lie_in_same_disk(P1,P2,data) then
     error "the points do not lie in the same residue disk";
@@ -1745,30 +1745,31 @@ evalf0:=function(f0,P,data);
   // Evaluate vector of functions f0 at P.
  
   x0:=P`x; b:=P`b; Q:=data`Q; rK:=data`rK; W0:=data`W0; Winf:=data`Winf; N:=data`N; Nmax:=data`Nmax; p:=data`p;
-  d:=Degree(Q); Kp:=Parent(x0);
+  d:=Degree(Q); Kp:=data`Kp;
   Kpx:=PolynomialRing(Kp);
-
+  Kpt:=LaurentSeriesRing(Kp);
+  rKp:=Kx_to_Kpt(rK,data`ip,Kpt);
   valf0:=0;
 
   if P`inf then 
     Winv:=W0*Winf^(-1); 
-    Winv:=matrix_push_to_Kp(Winv);
-    b:=Vector(b)*Transpose(Evaluate(Evaluate(Winv,1/Qt.1),x0)); // values of the b_i^0 at P
+    WinvKp:=matrix_push_to_Kp(Winv,d,Kpx);
+    b:=Vector(b)*Transpose(Evaluate(Evaluate(Winv,1/Kpt.1),x0)); // values of the b_i^0 at P
     
-    z0:=Evaluate(r,1/x0)/lcr;
+    z0:=Evaluate(rKp,1/x0);
     invz0:=1/z0;
-    invz0pow:=[K!1];
+    invz0pow:=[Kp!1];
     for i:=1 to p*(Nmax-1) do
       invz0pow[i+1]:=invz0pow[i]*invz0;
     end for;
     
     invx0:=1/x0;
-    invx0pow:=[K!1];
-    for i:=1 to Degree(r)-1 do
+    invx0pow:=[Kp!1];
+    for i:=1 to Degree(rK)-1 do
       invx0pow[i+1]:=invx0pow[i]*invx0;
     end for;
 
-    f0P:=K!0;
+    f0P:=Kp!0;
     for i:=1 to d do
       f0i:=f0[i];
       C:=Coefficients(f0i);
@@ -1776,28 +1777,28 @@ evalf0:=function(f0,P,data);
       for j:=1 to #C do
         D:=Coefficients(C[j]);
         for k:=1 to #D do
-          f0P:=f0P+(K!D[k])*invx0pow[k]*invz0pow[2-j-val]*b[i];
+          f0P:=f0P+(Kp!D[k])*invx0pow[k]*invz0pow[2-j-val]*b[i];
           valf0:=Minimum(valf0,Valuation(K!D[k]));
         end for;
       end for;
     end for;
-    Nf0P:=N*Degree(K)+(ord_inf_mat(Winv)+1)*Valuation(x0)+valf0;
+    Nf0P:=N*Degree(Kp)+(ord_inf_mat(Winv)+1)*Valuation(x0)+valf0;
 
   else
     
-    z0:=Evaluate(r,x0)/lcr;  
+    z0:=Evaluate(rKp,x0);  
     invz0:=1/z0;
-    invz0pow:=[K!1];
+    invz0pow:=[Kp!1];
     for i:=1 to p*(Nmax-1) do
       invz0pow[i+1]:=invz0pow[i]*invz0;
     end for;
 
-    x0pow:=[K!1];
-    for i:=1 to Degree(r)-1 do
+    x0pow:=[Kp!1];
+    for i:=1 to Degree(rKp)-1 do
       x0pow[i+1]:=x0pow[i]*x0;
     end for;  
  
-    f0P:=K!0;
+    f0P:=Kp!0;
     for i:=1 to d do
       f0i:=f0[i];
       C:=Coefficients(f0i);
@@ -1805,15 +1806,15 @@ evalf0:=function(f0,P,data);
       for j:=1 to #C do
         D:=Coefficients(C[j]);
         for k:=1 to #D do
-          f0P:=f0P+(K!D[k])*x0pow[k]*invz0pow[2-j-val]*b[i];
-          valf0:=Minimum(valf0,Valuation(K!D[k]));
+          f0P:=f0P+(Kp!D[k])*x0pow[k]*invz0pow[2-j-val]*b[i];
+          valf0:=Minimum(valf0,Valuation(Kp!D[k]));
         end for;
       end for;
     end for;
-    Nf0P:=N*Degree(K)-p*(Nmax-1)*Valuation(z0)+valf0; // TODO this is error of terms we did consider, take error of terms we ignored into account as well
+    Nf0P:=N*Degree(Kp)-p*(Nmax-1)*Valuation(z0)+valf0; // TODO this is error of terms we did consider, take error of terms we ignored into account as well
   end if;
 
-  return f0P,Nf0P/Degree(K);
+  return f0P,Nf0P/Degree(Kp);
 
 end function;
 

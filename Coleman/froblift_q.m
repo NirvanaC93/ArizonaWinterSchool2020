@@ -129,6 +129,12 @@ Zax_to_Kpx:=function(f,Kpx);
   return g;
 end function;
 
+Kx_to_Kpt:=function(f,Kpt);
+  Kp:=BaseRing(Kpt);
+  coeffs:=Coefficients(f);
+  g:=&+[(Kp!coeffs[i])*Kpt.1^(i-1) : i in [1..#coeffs]];
+  return g;
+end function;
 
 Zaxy_to_R:=function(f,R);
 

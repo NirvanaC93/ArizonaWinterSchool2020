@@ -684,7 +684,7 @@ local_data:=function(P,data)
 
   // For a point P, returns the ramification index of the map x on the residue disk at P
 
-  Q:=data`Q; p:=data`p; W0:=data`W0; Winf:=data`Winf; x0:=P`x; b:=P`b; m:=data`m; d:=Degree(Q); n:=Degree(m);
+  Q:=data`Q; p:=data`p; W0:=data`W0; Winf:=data`Winf; x0:=P`x; b:=P`b; d:=Degree(Q); n:=data`n;
   Kp:=data`Kp;
 
   if not is_bad(P,data) then
@@ -882,19 +882,18 @@ end function;
 approx_root:=function(fy,y0,modpprec,expamodp)
 
   // Computes an approximation to t-adic precision modpprec of 
-  // a root of the polynomial fy over Qp[[t]] which is congruent to:
+  // a root of the polynomial fy over Kp[[t]] which is congruent to:
   //
   // y0 modulo t
   // expamodp modulo p 
   //
   // This approximation is then used as root in hensel_lift.
 
-  Kty:=Parent(fy);
-  Kt:=BaseRing(Kty);
-  tprec:=Precision(Kt); // t-adic precision
-  K:=BaseRing(Kt);
-
-  p:=Prime(K);
+  Kpty:=Parent(fy);
+  Kpt:=BaseRing(Kpty);
+  tprec:=Precision(Kpt); // t-adic precision
+  Kp:=BaseRing(Kpt);
+  Op:=RingOfIntegers(Kp);
   Fp:=FiniteField(p);
   pprec:=Precision(K);  // p-adic precision
   Zp:=pAdicRing(p,pprec);

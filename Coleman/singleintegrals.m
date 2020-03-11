@@ -794,8 +794,8 @@ hensel_lift:=function(fy,root,data);
   Opt:=PowerSeriesRing(Op,tprec);  
 
   //fy:=Kty!fy;
-  derfy:=Derivative(fy);  
-  root:=Kx_to_Kpt(root,ip,Kpt);
+  derfy:=Derivative(fy);
+
   if not Valuation(LeadingCoefficient(Evaluate(derfy,root))) eq 0 then
     error "In Hensel lift of power series, derivative has leading term divisible by p";
   end if;

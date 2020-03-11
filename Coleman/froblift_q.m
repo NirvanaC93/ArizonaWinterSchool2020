@@ -129,8 +129,7 @@ Zax_to_Kpx:=function(f,Kpx);
   return g;
 end function;
 
-Kx_to_Kpt:=function(f,map);
-  Kpt:=Codomain(map);
+Kx_to_Kpt:=function(f,map,Kpt);
   Kp:=BaseRing(Kpt);
   coeffs:=[Kp| map(c) : c in Coefficients(f)];
   g:=Kpt!0;

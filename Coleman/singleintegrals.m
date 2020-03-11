@@ -766,34 +766,36 @@ local_data:=function(P,data)
 end function;
 
 
-hensel_lift:=function(fy,root);
+hensel_lift:=function(fy,root,K);
 
-  // Finds a root of the polynomial fy over Qp[[t]]
+  // Finds a root of the polynomial fy over Kp[[t]]
   // by Hensel lifting from an approximate root.
   //
   // Assumes that the starting criterion for Hensel's 
   // lemma is satisfied
 
-  Kty:=Parent(fy);
-  Kt:=BaseRing(Kty);
-  K:=BaseRing(Kt);
-  tprec:=Precision(Kt); // t-adic precision
-  Qt:=PowerSeriesRing(RationalField(),tprec);
-  Qty:=PolynomialRing(Qt);
-  p:=Prime(K);
-  pprec:=Precision(K);  // p-adic precision
-  Zp:=pAdicRing(p,pprec);
-  Zpt:=PowerSeriesRing(Zp,tprec);  
 
-  fy:=Qty!fy;
+  Kpty:=Parent(fy);
+  Kpt:=BaseRing(Kpty);
+  Kp:=BaseRing(Kpt);
+  tprec:=Precision(Kpt); // t-adic precision
+  Kt:=PowerSeriesRing(K,tprec);
+  Kty:=PolynomialRing(Kt);
+  p:=Prime(Kp);
+  pprec:=Precision(Kp);  // p-adic precision
+  Op:=RingOfIntegers(Kp);
+  Opt:=PowerSeriesRing(Op,tprec);  
+
+  //fy:=Kty!fy;
   derfy:=Derivative(fy);  
-
-  if not Valuation(LeadingCoefficient(Qt!Evaluate(derfy,root)),p) eq 0 then
+  root:=Kpt!root;
+//push to power series??
+  if not Valuation(LeadingCoefficient(Evaluate(derfy,root))) eq 0 then
     error "In Hensel lift of power series, derivative has leading term divisible by p";
   end if;
 
-  v1:=Valuation(Qt!Zpt!Evaluate(fy,root));
-  v2:=Valuation(Qt!Zpt!Evaluate(derfy,root));
+  v1:=Valuation(Kt!Evaluate(fy,root));
+  v2:=Valuation(Kt!Evaluate(derfy,root));
 
   if not v1 gt 2*v2 then
     error "Condition Hensel's Lemma not satisfied";

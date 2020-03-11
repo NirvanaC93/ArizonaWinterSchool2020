@@ -189,14 +189,17 @@ coleman_data:=function(Q,p,m,N:useU:=false,basis0:=[],basis1:=[],basis2:=[],verb
     print "Memory (Mb) : ", GetMaximumMemoryUsage() div (1024^2), "\n";
   end if;
 
-  // formatting the output into a record:
+  rK:=Zax_to_Kx(r,Kx);
+  rK:=rK/LeadingCoefficient(rK);
 
-  format:=recformat<Q,p,m,N,g,W0,Winf,r,Delta,s,G0,Ginf,e0,einf,delta,basis,quo_map,integrals,F,f0list,finflist,fendlist,Nmax,red_list_fin,red_list_inf,minpolys,K,n,Kx,Kxy,Kp,ip>;
+  // formatting the output into a record:
+ 
+  format:=recformat<Q,p,m,N,g,W0,Winf,r,Delta,s,G0,Ginf,e0,einf,delta,basis,quo_map,integrals,F,f0list,finflist,fendlist,Nmax,red_list_fin,red_list_inf,minpolys,K,n,Kx,Kxy,Kp,ip,rK>;
   out:=rec<format|>;
   out`Q:=Q; out`p:=p; out`m:=m; out`N:=N; out`g:=g; out`W0:=W0; out`Winf:=Winf; out`r:=r; out`Delta:=Delta; out`s:=s; out`G0:=G0; out`Ginf:=Ginf; 
   out`e0:=e0; out`einf:=einf; out`delta:=delta; out`basis:=basis; out`quo_map:=quo_map; out`integrals:=integrals; out`F:=F; out`f0list:=f0list; 
   out`finflist:=finflist; out`fendlist:=fendlist; out`Nmax:=Nmax; out`red_list_fin:=red_list_fin; out`red_list_inf:=red_list_inf;
-  out`K:=K; out`n:=n; out`Kx:=Kx; out`Kxy:=Kxy; out`Kp:=Kp; out`ip:=ip;
+  out`K:=K; out`n:=n; out`Kx:=Kx; out`Kxy:=Kxy; out`Kp:=Kp; out`ip:=ip; out`rK:=rK;
 
   return out;
 
@@ -1508,21 +1511,22 @@ tiny_integrals_on_basis:=function(P1,P2,data:prec:=0,P:=0);
   // residue disk as P1 has to be specified.
 
   x1:=P1`x; x2:=P2`x; b1:=P1`b; b2:=P2`b; Q:=data`Q; p:=data`p; N:=data`N; W0:=data`W0; Winf:=data`Winf; r:=data`r; basis:=data`basis; N:=data`N;
-  d:=Degree(Q); lc_r:=LeadingCoefficient(r); W:=Winf*W0^(-1); K:=Parent(x1); 
+  d:=Degree(Q); lc_r:=LeadingCoefficient(rK); W:=Winf*W0^(-1); Kp:=data`Kp;  rK:=data`rK;
 
   if not lie_in_same_disk(P1,P2,data) then
     error "the points do not lie in the same residue disk";
   end if;
 
   //if ((x1 eq x2) and (b1 eq b2)) then 
-  //  return RSpace(K,#basis)!0, N*Degree(K);
+  //  return RSpace(Kp,#basis)!0, N*Degree(Kp);
   //end if;
 
   if (Valuation(x1-x2)/Valuation(Parent(x1-x2)!p) ge N) and (Minimum([Valuation(b1[i]-b2[i])/Valuation(Parent(b1[i]-b2[i])!p):i in [1..d]]) ge N) then
-    return RSpace(K,#basis)!0, N*Degree(K);
+    return RSpace(Kp,#basis)!0, N*Degree(Kp);
   end if; 
 
-  if Degree(K) gt 1 then // P1 needs to be defined over Qp
+
+  if AbsoluteRamificationDegree(Kp) gt 1 then // P1 needs to be defined over Qq
     tinyPtoP2,NtinyPtoP2:=$$(P,P2,data);
     tinyPtoP1,NtinyPtoP1:=$$(P,P1,data);
     return tinyPtoP2-tinyPtoP1,Minimum(NtinyPtoP2,NtinyPtoP1);
@@ -1539,62 +1543,68 @@ tiny_integrals_on_basis:=function(P1,P2,data:prec:=0,P:=0);
     return tinyPtoP2-tinyPtoP1,Minimum(NtinyPtoP2,NtinyPtoP1);
   end if;
 
-  e:=Degree(Parent(x2));
+  e:=AbsoluteRamificationDegree(Parent(x2));
 
   if prec eq 0 then // no t-adic precision specified
     prec:=tadicprec(data,e);
   end if;
 
-  Kt:=LaurentSeriesRing(K,prec);
-  OK:=RingOfIntegers(K);
-  OKt:=LaurentSeriesRing(OK,prec);
+  Kpt:=LaurentSeriesRing(Kp,prec);
+  Op:=RingOfIntegers(Kp);
+  Opt:=LaurentSeriesRing(Op,prec);
 
   xt,bt,index:=local_coord(P1,prec,data);
 
-  Qt<t>:=LaurentSeriesRing(RationalField(),prec);
-  xt:=Qt!xt;
+  Kt<t>:=LaurentSeriesRing(K,prec);
+  /*xt:=Qt!xt;
   btnew:=[Qt|];
   for i:=1 to d do
     btnew[i]:=Qt!bt[i];
   end for;
-  bt:=Vector(btnew);
+  bt:=Vector(btnew);*/
+  
+  // WE ONLY CONSIDER FINITE GOOD POINTS
 
   if P1`inf then
-    xt:=1/xt;
-    xt:=Qt!Kt!xt; 
+    error "We only consider finite good points";
+/*    xt:=1/xt;
+    xt:=Qt!Kpt!xt; 
     Winv:=W0*Winf^(-1);          
     bt:=bt*Transpose(Evaluate(Winv,xt));
     for i:=1 to d do
-      bt[i]:=Qt!(Kt!bt[i]);
-    end for; 
+      bt[i]:=Qt!(Kpt!bt[i]);
+    end for; */
   end if;
-
+  rKpt:=Kx_to_Kpt(rK,data`ip,Kpt);
   if P1`inf or not is_bad(P1,data) then 
-    denom:=Qt!Kt!(1/Evaluate(r,xt));
+    denom:=(1/Evaluate(rKpt,xt));
   else
+    error "We only consider finite good points";
+    /*
     Qp:=pAdicField(p,N);
     Qpx:=PolynomialRing(Qp);
     rQp:=Qpx!r;
     zero:=HenselLift(rQp,x1);
     sQp:=rQp div (Qpx.1-zero);
-    denom:=Qt!Kt!((Qt!OKt!(xt-Coefficient(xt,0)))^(-1)*(Qt!Kt!(1/Evaluate(sQp,xt))));
+    denom:=Qt!Kt!((Qt!OKt!(xt-Coefficient(xt,0)))^(-1)*(Qt!Kt!(1/Evaluate(sQp,xt))));*/
   end if;
 
-  derxt:=Qt!Kt!Derivative(xt); 
+  derxt:=Derivative(xt); 
   diffs:=[];
+  basisKpt:=[Kx_to_Kpt(basis[i],data`ip,Kpt) : i in [1..#basis]];
   for i:=1 to #basis do
-    basisxt:=Evaluate(basis[i],xt);
-    for j:=1 to d do
+    basisxt:=Evaluate(basisKpt[i],xt);
+    /*for j:=1 to d do
       basisxt[1][j]:=Qt!Kt!basisxt[1][j];
-    end for;
+    end for;*/
     diffs[i]:=InnerProduct(Vector(basisxt*derxt*lc_r*denom),bt);
-    diffs[i]:=Qt!Kt!diffs[i];
+    //diffs[i]:=Qt!Kt!diffs[i];
     if Coefficient(diffs[i],-1) ne 0 then
-      diffs[i]:=diffs[i]-Coefficient(diffs[i],-1)*Kt.1^(-1); // temporary, deal with logs later, important for double integrals
+      diffs[i]:=diffs[i]-Coefficient(diffs[i],-1)*Kpt.1^(-1); // temporary, deal with logs later, important for double integrals
     end if;
   end for;
 
-  maxpoleorder:=-(Minimum([Valuation(diffs[i]): i in [1..#basis]])); 
+  maxpoleorder:=-(Minimum([WeakValuation(diffs[i]): i in [1..#basis]])); 
   maxdegree:=Maximum([Degree(diffs[i]): i in [1..#basis]]);
   mindegree:=Minimum([Degree(diffs[i]): i in [1..#basis]]);
 

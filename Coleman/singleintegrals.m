@@ -685,6 +685,7 @@ local_data:=function(P,data)
   // For a point P, returns the ramification index of the map x on the residue disk at P
 
   Q:=data`Q; p:=data`p; W0:=data`W0; Winf:=data`Winf; x0:=P`x; b:=P`b; m:=data`m; d:=Degree(Q); n:=Degree(m);
+  Kp:=data`Kp;
 
   if not is_bad(P,data) then
     eP:=1;
@@ -699,7 +700,7 @@ local_data:=function(P,data)
       for j:=1 to #D do
         E:=Coefficients(D[j]);
         for k:=1 to #E do
-          f:=f+(Fp!E[k])*Fp.1^k*Fpxy.1^i*Fpx.1^j;
+          f:=f+(Fp!E[k])*Fp.1^(k-1)*Fpxy.1^(i-1)*Fpx.1^(j-1);
         end for;
       end for;
     end for;  

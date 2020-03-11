@@ -77,7 +77,7 @@ coleman_data:=function(Q,p,m,N:useU:=false,basis0:=[],basis1:=[],basis2:=[],verb
   if Type(K) eq Type(Rationals()) then
 	K:=QNF();
   end if;
-  Kp:=comp<K|ideal<RingOfIntegers(K)|p>>;
+  Kp,ip:=comp<K|ideal<RingOfIntegers(K)|p>>;
   Kx:=PolynomialRing(K);
   Kxy:=PolynomialRing(Kx);
   Kxyz:=LaurentSeriesRing(Kxy);
@@ -185,12 +185,12 @@ coleman_data:=function(Q,p,m,N:useU:=false,basis0:=[],basis1:=[],basis2:=[],verb
 
   // formatting the output into a record:
 
-  format:=recformat<Q,p,m,N,g,W0,Winf,r,Delta,s,G0,Ginf,e0,einf,delta,basis,quo_map,integrals,F,f0list,finflist,fendlist,Nmax,red_list_fin,red_list_inf,minpolys,K,n,Kx,Kxy,Kp>;
+  format:=recformat<Q,p,m,N,g,W0,Winf,r,Delta,s,G0,Ginf,e0,einf,delta,basis,quo_map,integrals,F,f0list,finflist,fendlist,Nmax,red_list_fin,red_list_inf,minpolys,K,n,Kx,Kxy,Kp,ip>;
   out:=rec<format|>;
   out`Q:=Q; out`p:=p; out`m:=m; out`N:=N; out`g:=g; out`W0:=W0; out`Winf:=Winf; out`r:=r; out`Delta:=Delta; out`s:=s; out`G0:=G0; out`Ginf:=Ginf; 
   out`e0:=e0; out`einf:=einf; out`delta:=delta; out`basis:=basis; out`quo_map:=quo_map; out`integrals:=integrals; out`F:=F; out`f0list:=f0list; 
   out`finflist:=finflist; out`fendlist:=fendlist; out`Nmax:=Nmax; out`red_list_fin:=red_list_fin; out`red_list_inf:=red_list_inf;
-  out`K:=K; out`n:=n; out`Kx:=Kx; out`Kxy:=Kxy; out`Kp:=Kp;
+  out`K:=K; out`n:=n; out`Kx:=Kx; out`Kxy:=Kxy; out`Kp:=Kp; out`ip:=ip;
 
   return out;
 
@@ -1002,8 +1002,9 @@ local_coord:=function(P,prec,data);
   end if;
 
   x0:=P`x; Q:=data`Q; p:=data`p; N:=data`N; W0:=data`W0; Winf:=data`Winf; d:=Degree(Q); b:=P`b;
-  K:=data`K; Kxy:=data`Kxy;
-  Kp:=Parent(x0); Kpt<t>:=PowerSeriesRing(Kp,prec); Kpty:=PolynomialRing(Kpt);
+  K:=data`K; Kxy:=data`Kxy; Kp:=data`Kp; ip:=data`ip;
+  //Kp:=Parent(x0);
+  Kpt<t>:=PowerSeriesRing(Kp,prec); Kpty:=PolynomialRing(Kpt);
   Kt:=RationalFunctionField(K); Kty:=PolynomialRing(Kt);
   Kpx:=PolynomialRing(Kp);
   Fq:=ResidueClassField(RingOfIntegers(Kp));
@@ -1026,9 +1027,10 @@ local_coord:=function(P,prec,data);
     ypowers:=Vector(b)*W0invx0;
     y0:=ypowers[2];
 
-    C:=[Kx_to_Kpt(c,Kpt) : c in Coefficients(QK)];
+    C:=[Kx_to_Kpt(c,ip) : c in Coefficients(QK)];
     D:=[];
     for i:=1 to #C do
+      print Parent(C[i]);
       D[i]:=Evaluate(C[i],xt); 
     end for;
     fy:=Kpty!D;
@@ -1082,7 +1084,7 @@ local_coord:=function(P,prec,data);
           poly:=minpoly(FF!(1/Kt.1),bfun[i]);
         end if;
 
-        C:=[Kx_to_Kpt(c,Kpt) : c in Coefficients(poly)];
+        C:=[Kx_to_Kpt(c,ip) : c in Coefficients(poly)];
         D:=[];
         for j:=1 to #C do
           D[j]:=Evaluate(C[j],xt); 
@@ -1113,7 +1115,7 @@ local_coord:=function(P,prec,data);
         poly:=minpoly(bfun[index],FF!1/(Kt.1));
       end if;
 
-      C:=[Kx_to_Kpt(c,Kpt) : c in Coefficients(poly)];
+      C:=[Kx_to_Kpt(c,ip) : c in Coefficients(poly)];
       D:=[];
       for j:=1 to #C do
         D[j]:=Evaluate(C[j],t+b[index]); 
@@ -1146,7 +1148,7 @@ local_coord:=function(P,prec,data);
             poly:=minpoly(bfun[index],bfun[i]);
           end if;
 
-          C:=[Kx_to_Kpt(c,Kpt) : c in Coefficients(poly)];
+          C:=[Kx_to_Kpt(c,ip) : c in Coefficients(poly)];
           D:=[];
           for j:=1 to #C do
             D[j]:=Evaluate(C[j],t+b[index]); 
@@ -1201,7 +1203,7 @@ local_coord:=function(P,prec,data);
           poly:=minpoly(FF!Kt.1,bfun[i]);
         end if;
 
-        C:=[Kx_to_Kpt(c,Kpt) : c in Coefficients(poly)];
+        C:=[Kx_to_Kpt(c,ip) : c in Coefficients(poly)];
         D:=[];
         for j:=1 to #C do
           D[j]:=Evaluate(C[j],xt); 
@@ -1232,7 +1234,7 @@ local_coord:=function(P,prec,data);
         poly:=minpoly(bfun[index],FF!Kt.1);
       end if;
 
-      C:=[Kx_to_Kpt(c,Kpt) : c in Coefficients(poly)];
+      C:=[Kx_to_Kpt(c,ip) : c in Coefficients(poly)];
       D:=[];
       for j:=1 to #C do
         D[j]:=Evaluate(C[j],t+b[index]); 
@@ -1265,7 +1267,7 @@ local_coord:=function(P,prec,data);
             poly:=minpoly(bfun[index],bfun[i]);
           end if;
 
-          C:=[Kx_to_Kpt(c,Kpt) : c in Coefficients(poly)];
+          C:=[Kx_to_Kpt(c,ip) : c in Coefficients(poly)];
           D:=[];
           for j:=1 to #C do
             D[j]:=Evaluate(C[j],t+b[index]);

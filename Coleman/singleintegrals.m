@@ -766,7 +766,7 @@ local_data:=function(P,data)
 end function;
 
 
-hensel_lift:=function(fy,root,K);
+hensel_lift:=function(fy,root,data);
 
   // Finds a root of the polynomial fy over Kp[[t]]
   // by Hensel lifting from an approximate root.
@@ -774,7 +774,7 @@ hensel_lift:=function(fy,root,K);
   // Assumes that the starting criterion for Hensel's 
   // lemma is satisfied
 
-
+  K:=data`K; ip:=data`ip; 
   Kpty:=Parent(fy);
   Kpt:=BaseRing(Kpty);
   Kp:=BaseRing(Kpt);
@@ -788,14 +788,13 @@ hensel_lift:=function(fy,root,K);
 
   //fy:=Kty!fy;
   derfy:=Derivative(fy);  
-  root:=Kpt!root;
-//push to power series??
+  root:=Kx_to_Kpt(root,ip,Kpt);
   if not Valuation(LeadingCoefficient(Evaluate(derfy,root))) eq 0 then
     error "In Hensel lift of power series, derivative has leading term divisible by p";
   end if;
 
-  v1:=Valuation(Kt!Evaluate(fy,root));
-  v2:=Valuation(Kt!Evaluate(derfy,root));
+  v1:=Valuation(Evaluate(fy,root));
+  v2:=Valuation(Evaluate(derfy,root));
 
   if not v1 gt 2*v2 then
     error "Condition Hensel's Lemma not satisfied";
@@ -811,10 +810,9 @@ hensel_lift:=function(fy,root,K);
   prec_seq:=Reverse(prec_seq);
 
   for j:=1 to #prec_seq do
-    root:=Qt!root;
     root:=ChangePrecision(root,prec_seq[j]);
-    root:=root-(Qt!Zpt!Evaluate(fy,root))/(Qt!Zpt!Evaluate(derfy,root));
-    root:=Zpt!root;
+    root:=root-(Evaluate(fy,root))/(Evaluate(derfy,root));
+    root:=Opt!root;
   end for;
 
   return root;
@@ -1036,7 +1034,7 @@ local_coord:=function(P,prec,data);
     fy:=Kpty!D;
     derfy:=Derivative(fy);
 
-    yt:=hensel_lift(fy,Kpt!y0);
+    yt:=hensel_lift(fy,Kpt!y0,data);
 
     ypowerst:=[];
     ypowerst[1]:=FieldOfFractions(Kpt)!1;

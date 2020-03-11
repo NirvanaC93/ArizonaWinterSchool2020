@@ -820,7 +820,7 @@ hensel_lift:=function(fy,root,data);
 end function;
 
 
-mod_p_prec:=function(fy,data);
+mod_p_prec:=function(fy);
 
   // Finds the t-adic precision necessary to separate the roots
   // of the polynomial fy over Kp[[t]] modulo p and start Hensel lift.
@@ -838,7 +838,16 @@ mod_p_prec:=function(fy,data);
   Fpt:=PowerSeriesRing(Fp,tprec);
   Fpty:=PolynomialRing(Fpt);
 
-  fymodp:=Fpty!fy;
+  f:=Fpty!0;
+    C:=Coefficients(fy);
+    for i:=1 to #C do
+      D:=Coefficients(C[i]);
+      for j:=1 to #D do
+          f:=f+(Fp!D[j])*Fpty.1^(i-1)*Fpt.1^(j-1);
+      end for;
+    end for;  
+
+  fymodp:=f;
   derfymodp:=Derivative(fymodp);
 
   zeros:=[];

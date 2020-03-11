@@ -1023,7 +1023,7 @@ local_coord:=function(P,prec,data);
     ypowers:=Vector(b)*W0invx0;
     y0:=ypowers[2];
 
-    C:=Coefficients(QK);
+    C:=[Kx_to_Kpt(c,Kpt) : c in Coefficients(QK)];
     D:=[];
     for i:=1 to #C do
       D[i]:=Evaluate(C[i],xt); 
@@ -1079,7 +1079,7 @@ local_coord:=function(P,prec,data);
           poly:=minpoly(FF!(1/Kt.1),bfun[i]);
         end if;
 
-        C:=Coefficients(poly);
+        C:=[Kx_to_Kpt(c,Kpt) : c in Coefficients(poly)];
         D:=[];
         for j:=1 to #C do
           D[j]:=Evaluate(C[j],xt); 
@@ -1110,7 +1110,7 @@ local_coord:=function(P,prec,data);
         poly:=minpoly(bfun[index],FF!1/(Kt.1));
       end if;
 
-      C:=Coefficients(poly);
+      C:=[Kx_to_Kpt(c,Kpt) : c in Coefficients(poly)];
       D:=[];
       for j:=1 to #C do
         D[j]:=Evaluate(C[j],t+b[index]); 
@@ -1143,7 +1143,7 @@ local_coord:=function(P,prec,data);
             poly:=minpoly(bfun[index],bfun[i]);
           end if;
 
-          C:=Coefficients(poly);
+          C:=[Kx_to_Kpt(c,Kpt) : c in Coefficients(poly)];
           D:=[];
           for j:=1 to #C do
             D[j]:=Evaluate(C[j],t+b[index]); 
@@ -1198,7 +1198,7 @@ local_coord:=function(P,prec,data);
           poly:=minpoly(FF!Kt.1,bfun[i]);
         end if;
 
-        C:=Coefficients(poly);
+        C:=[Kx_to_Kpt(c,Kpt) : c in Coefficients(poly)];
         D:=[];
         for j:=1 to #C do
           D[j]:=Evaluate(C[j],xt); 
@@ -1229,7 +1229,7 @@ local_coord:=function(P,prec,data);
         poly:=minpoly(bfun[index],FF!Kt.1);
       end if;
 
-      C:=Coefficients(poly);
+      C:=[Kx_to_Kpt(c,Kpt) : c in Coefficients(poly)];
       D:=[];
       for j:=1 to #C do
         D[j]:=Evaluate(C[j],t+b[index]); 
@@ -1262,7 +1262,7 @@ local_coord:=function(P,prec,data);
             poly:=minpoly(bfun[index],bfun[i]);
           end if;
 
-          C:=Coefficients(poly);
+          C:=[Kx_to_Kpt(c,Kpt) : c in Coefficients(poly)];
           D:=[];
           for j:=1 to #C do
             D[j]:=Evaluate(C[j],t+b[index]);

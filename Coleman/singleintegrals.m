@@ -1509,8 +1509,8 @@ tiny_integrals_on_basis:=function(P1,P2,data:prec:=0,P:=0);
   // extension) then a point P defined over Qp in the same
   // residue disk as P1 has to be specified.
 
-  x1:=P1`x; x2:=P2`x; b1:=P1`b; b2:=P2`b; Q:=data`Q; p:=data`p; N:=data`N; W0:=data`W0; Winf:=data`Winf; r:=data`r; basis:=data`basis; N:=data`N;
-  d:=Degree(Q); lc_r:=LeadingCoefficient(rK); W:=Winf*W0^(-1); Kp:=data`Kp;  rK:=data`rK;
+  x1:=P1`x; x2:=P2`x; b1:=P1`b; b2:=P2`b; Q:=data`Q; p:=data`p; N:=data`N; W0:=data`W0; Winf:=data`Winf; Kx:=data`Kx; r:=data`r; basis:=data`basis; N:=data`N;
+  d:=Degree(Q); W:=Winf*W0^(-1); Kp:=data`Kp;  rK:=data`rK;
 
   if not lie_in_same_disk(P1,P2,data) then
     error "the points do not lie in the same residue disk";
@@ -1590,22 +1590,32 @@ tiny_integrals_on_basis:=function(P1,P2,data:prec:=0,P:=0);
 
   derxt:=Derivative(xt); 
   diffs:=[];
-  basisKpt:=[Kx_to_Kpt(basis[i],data`ip,Kpt) : i in [1..#basis]];
+  basisKpt:=[Vector([Kx_to_Kpt(Zax_to_Kx(basis[i][j],Kx),data`ip,Kpt): j in [1..d]]) : i in [1..#basis]];
   for i:=1 to #basis do
     basisxt:=Evaluate(basisKpt[i],xt);
     /*for j:=1 to d do
       basisxt[1][j]:=Qt!Kt!basisxt[1][j];
     end for;*/
-    diffs[i]:=InnerProduct(Vector(basisxt*derxt*lc_r*denom),bt);
+    diffs[i]:=Kpt!(InnerProduct(Vector(basisxt*derxt*denom),Vector(bt)));
     //diffs[i]:=Qt!Kt!diffs[i];
     if Coefficient(diffs[i],-1) ne 0 then
       diffs[i]:=diffs[i]-Coefficient(diffs[i],-1)*Kpt.1^(-1); // temporary, deal with logs later, important for double integrals
     end if;
   end for;
-
-  maxpoleorder:=-(Minimum([WeakValuation(diffs[i]): i in [1..#basis]])); 
-  maxdegree:=Maximum([Degree(diffs[i]): i in [1..#basis]]);
-  mindegree:=Minimum([Degree(diffs[i]): i in [1..#basis]]);
+  A:=[WeakValuation(diffs[i]): i in [1..#basis] | not IsWeaklyZero(diffs[i])];
+  if IsEmpty(A) then
+    maxpoleorder:=-N;
+  else
+    maxpoleorder:=-(Minimum([WeakValuation(diffs[i]): i in [1..#basis] | not IsWeaklyZero(diffs[i])]));
+  end if;
+  B:=[Degree(diffs[i]): i in [1..#basis] | not IsWeaklyZero(diffs[i])];
+  if IsEmpty(B) then
+    maxdegree:=0;
+    mindegree:=1000;
+  else
+    maxdegree:=Maximum([Degree(diffs[i]): i in [1..#basis] | not IsWeaklyZero(diffs[i])]);
+    mindegree:=Minimum([Degree(diffs[i]): i in [1..#basis] | not IsWeaklyZero(diffs[i])]);
+  end if;
 
   indefints:=[];
   for i:=1 to #basis do
@@ -1734,14 +1744,15 @@ evalf0:=function(f0,P,data);
 
   // Evaluate vector of functions f0 at P.
  
-  x0:=P`x; b:=P`b; Q:=data`Q; r:=data`r; W0:=data`W0; Winf:=data`Winf; N:=data`N; Nmax:=data`Nmax; p:=data`p;
-  d:=Degree(Q); lcr:=LeadingCoefficient(r); K:=Parent(x0);
+  x0:=P`x; b:=P`b; Q:=data`Q; rK:=data`rK; W0:=data`W0; Winf:=data`Winf; N:=data`N; Nmax:=data`Nmax; p:=data`p;
+  d:=Degree(Q); Kp:=Parent(x0);
+  Kpx:=PolynomialRing(Kp);
 
   valf0:=0;
 
   if P`inf then 
     Winv:=W0*Winf^(-1); 
-    Qt:=BaseRing(Winv);
+    Winv:=matrix_push_to_Kp(Winv);
     b:=Vector(b)*Transpose(Evaluate(Evaluate(Winv,1/Qt.1),x0)); // values of the b_i^0 at P
     
     z0:=Evaluate(r,1/x0)/lcr;

@@ -820,20 +820,21 @@ hensel_lift:=function(fy,root,data);
 end function;
 
 
-mod_p_prec:=function(fy);
+mod_p_prec:=function(fy,data);
 
   // Finds the t-adic precision necessary to separate the roots
-  // of the polynomial fy over Qp[[t]] modulo p and start Hensel lift.
+  // of the polynomial fy over Kp[[t]] modulo p and start Hensel lift.
   //
   // Temporarily uses intrinsic Factorisation instead of 
   // intrinsic Roots because of multiple problems with Roots.
   
-  Kty:=Parent(fy);
-  Kt:=BaseRing(Kty);
-  tprec:=Precision(Kt);
-  K:=BaseRing(Kt);
-  p:=Prime(K);
-  Fp:=FiniteField(p);
+  Kpty:=Parent(fy);
+  Kpt:=BaseRing(Kpty);
+  tprec:=Precision(Kpt);
+  Kp:=BaseRing(Kpt);
+  p:=Prime(Kp);
+  Op:=RingOfIntegers(Kp);
+  Fp:=ResidueClassField(Op);
   Fpt:=PowerSeriesRing(Fp,tprec);
   Fpty:=PolynomialRing(Fpt);
 
@@ -1100,7 +1101,7 @@ local_coord:=function(P,prec,data);
           approxroot:=approx_root(fy,b[i],modpprec,expamodp);
         end if;
 
-        bti:=hensel_lift(fy,approxroot);
+        bti:=hensel_lift(fy,approxroot,data);
         bt[i]:=bti;
 
       end for;
@@ -1131,7 +1132,7 @@ local_coord:=function(P,prec,data);
         approxroot:=approx_root(fy,x0,modpprec,expamodp);
       end if;
 
-      xt:=hensel_lift(fy,approxroot);
+      xt:=hensel_lift(fy,approxroot,data);
 
       bt:=[];
       for i:=1 to d do 
@@ -1165,7 +1166,7 @@ local_coord:=function(P,prec,data);
             approxroot:=approx_root(fy,b[i],modpprec,expamodp);
           end if;
 
-          bti:=hensel_lift(fy,approxroot);
+          bti:=hensel_lift(fy,approxroot,data);
           bt[i]:=bti;
 
         end if;
@@ -1219,7 +1220,7 @@ local_coord:=function(P,prec,data);
           approxroot:=approx_root(fy,b[i],modpprec,expamodp);
         end if;
 
-        bti:=hensel_lift(fy,approxroot);
+        bti:=hensel_lift(fy,approxroot,data);
         bt[i]:=bti;
 
       end for;
@@ -1250,7 +1251,7 @@ local_coord:=function(P,prec,data);
         approxroot:=approx_root(fy,x0,modpprec,expamodp);
       end if;
 
-      xt:=hensel_lift(fy,approxroot);  
+      xt:=hensel_lift(fy,approxroot,data);  
 
       bt:=[];
       for i:=1 to d do 
@@ -1285,7 +1286,7 @@ local_coord:=function(P,prec,data);
             approxroot:=approx_root(fy,b[i],modpprec,expamodp);
           end if;
 
-          bti:=hensel_lift(fy,approxroot);
+          bti:=hensel_lift(fy,approxroot,data);
           bt[i]:=bti;
 
         end if;

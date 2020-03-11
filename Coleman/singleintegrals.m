@@ -832,9 +832,8 @@ mod_p_prec:=function(fy);
   Kpt:=BaseRing(Kpty);
   tprec:=Precision(Kpt);
   Kp:=BaseRing(Kpt);
-  p:=Prime(Kp);
   Op:=RingOfIntegers(Kp);
-  Fp:=ResidueClassField(Op);
+  Fp,red:=ResidueClassField(Op);
   Fpt:=PowerSeriesRing(Fp,tprec);
   Fpty:=PolynomialRing(Fpt);
 
@@ -843,7 +842,7 @@ mod_p_prec:=function(fy);
     for i:=1 to #C do
       D:=Coefficients(C[i]);
       for j:=1 to #D do
-          f:=f+(Fp!D[j])*Fpty.1^(i-1)*Fpt.1^(j-1);
+          f:=f+red(D[j])*Fpty.1^(i-1)*Fpt.1^(j-1);
       end for;
     end for;  
 

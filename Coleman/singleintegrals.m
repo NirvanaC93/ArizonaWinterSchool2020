@@ -4,7 +4,8 @@ WeakValuation:=function(f)
   return m;
 end function;
 
-max_prec:=function(Q,p,N,g,W0,Winf,e0,einf);
+// TODO: go through Tuitman's proof
+max_prec:=function(Q,p,N,g,W0,Winf,e0,einf)
 
   // Compute the p-adic precision required for provable correctness
 
@@ -58,7 +59,8 @@ end function;
 
 coleman_data:=function(Q,p,m,N:useU:=false,basis0:=[],basis1:=[],basis2:=[],verbose:=false,W0:=0,Winf:=0)
 
-  // Takes a polynomial Q in two variables x,y over the rationals which is monic in y.
+
+  // Takes a polynomial Q in three variables a,x,y over the rationals which is monic in y, where a represents a generator of K over Q.
   // Returns the Coleman data of (the projective nonsingular model of) the curve defined
   // by Q at p to p-adic precision N.
   
@@ -83,11 +85,16 @@ coleman_data:=function(Q,p,m,N:useU:=false,basis0:=[],basis1:=[],basis2:=[],verb
   if Type(K) eq Type(Rationals()) then
 	K:=QNF();
   end if;
-  Kp,ip:=comp<K|ideal<RingOfIntegers(K)|p>>;
-  Kx:=PolynomialRing(K);
-  Kxy:=PolynomialRing(Kx);
-  Kxyz:=LaurentSeriesRing(Kxy);
-  n:=Degree(m);
+  OK := Integers(K);
+  pfrs := Decomposition(OK, p);
+  n, pos := Min([Degree(pfr[1]) : pfr in pfrs | pfr[2] eq 1]); // pick an unramified prime ideal pfr of minimal degree n
+  pfr := pfrs[pos][1];
+  Kp, ip := Completion(K, pfr);
+  //OKp := RingOfIntegers(Kp);
+  //Fq, mod_pfr := ResidueClassField(OKp);
+  Kx<x> := PolynomialRing(K);
+  Kxy<y> := PolynomialRing(Kx);
+  Kxyz<z> := LaurentSeriesRing(Kxy);
 
   ResetMaximumMemoryUsage();
   t0:=Cputime();
@@ -111,7 +118,9 @@ coleman_data:=function(Q,p,m,N:useU:=false,basis0:=[],basis1:=[],basis2:=[],verb
   W:=Winf*W0inv;
   Winfinv:=Winf^(-1);
 
-  if (FiniteField(p)!LeadingCoefficient(Delta) eq 0) or (Degree(r) lt 1) or (not smooth(r,p,n,m)) or (not (is_integral(W0,p,n) and is_integral(W0inv,p,n) and is_integral(Winf,p,n) and is_integral(Winfinv,p,n))) then
+  assert Type(LeadingCoefficient(Delta)) cmpeq RngIntElt;
+  // TODO: use the "smooth" function corretly. We need a function to push polynomials from Zax to Kpx. I think Zax_to_Kpx will not work for us, since our prime is not inert and hence the minimal polynomial of K/Q is not one of Kp/Qp (the latter might have lower degree).
+  if (FiniteField(p)!LeadingCoefficient(Delta) eq 0) or (Degree(r) lt 1) or (not smooth(r,Kp)) or (not (is_integral(W0,p,n) and is_integral(W0inv,p,n) and is_integral(Winf,p,n) and is_integral(Winfinv,p,n))) then
     error "bad prime";
   end if;
 
@@ -155,12 +164,13 @@ coleman_data:=function(Q,p,m,N:useU:=false,basis0:=[],basis1:=[],basis2:=[],verb
   end if;
 
   Nmax:=max_prec(Q,p,N,g,W0,Winf,e0,einf);
+  SetPrecision(Kp, Nmax);
 
   frobmatb0r:=froblift(Q,p,n,m,Nmax-1,r,Delta,s,W0);
 
   if verbose then 
     print "Time (s) :    ", Cputime(t);
-    print "Memory (Mb) : ", GetMaximumMemoryUsage() div (1024^2), "\n";
+    print "Memory (MiB) : ", GetMaximumMemoryUsage() div (1024^2), "\n";
   end if;
 
   if verbose then
@@ -171,7 +181,7 @@ coleman_data:=function(Q,p,m,N:useU:=false,basis0:=[],basis1:=[],basis2:=[],verb
 
   if verbose then
     print "Time (s) :    ", Cputime(t);
-    print "Memory (Mb) : ", GetMaximumMemoryUsage() div (1024^2), "\n";
+    print "Memory (MiB) : ", GetMaximumMemoryUsage() div (1024^2), "\n";
   end if;
 
   ResetMaximumMemoryUsage();
@@ -202,7 +212,6 @@ coleman_data:=function(Q,p,m,N:useU:=false,basis0:=[],basis1:=[],basis2:=[],verb
   out`K:=K; out`n:=n; out`Kx:=Kx; out`Kxy:=Kxy; out`Kp:=Kp; out`ip:=ip; out`rK:=rK;
 
   return out;
-
 end function;
 
 
